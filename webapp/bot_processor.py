@@ -1,7 +1,10 @@
+import traceback
 from time import sleep
 import os
 import multiprocessing as mp
 import threading
+
+import sys
 
 from bot import start_bot
 
@@ -50,7 +53,8 @@ class Processor:
             return
 
         if client_process['process'].is_alive():
-            self.vprint(client.phone, 'жив')
+            # self.vprint(client.phone, 'жив')
+            pass
         else:
             self.vprint(client.phone, 'процесс найден, но он мертв', client_process['process'].exitcode)
             self.vprint(client.phone, 'удаляю процесс из списка для перезапуска')
@@ -68,8 +72,11 @@ class Processor:
         )
         self.client_processes[client.phone]['process'].start()
 
-        self.client_processes[client.phone]['lisener_thread'] = threading.Thread(target=self.child_listener,
-                                                                                 args=(client, r1))
+        self.client_processes[client.phone]['lisener_thread'] = threading.Thread(
+            target=self.child_listener,
+            args=(client, r1),
+            daemon=True
+        )
         self.client_processes[client.phone]['lisener_thread'].start()
         self.vprint(client.phone, 'запущен новый процесс')
 
@@ -88,6 +95,8 @@ class Processor:
             client_process = self.client_processes.pop(client.phone)
             client_process['process'].terminate()
             self.vprint(client.phone, 'stop_client процесс клиента остановлен')
+            client.status = 'stopped'
+            client.save()
         else:
             self.vprint(client.phone, 'stop_client процесс клиента не найден')
 
@@ -117,10 +126,7 @@ class Processor:
     def child_listener(self, client, conn):
         while True:
             try:
-                status = conn.recv()
-                client.status = status
-                client.save()
-                # exec(conn.recv())
+                exec(conn.recv())
             except Exception as err:
+                traceback.print_exc(file=sys.stdout)
                 print('Ошибка от дочернего')
-                print(err)

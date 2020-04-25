@@ -15,6 +15,11 @@ def parent_listener(conn):
             print(err)
 
 
+# def exec_on_parent(conn):
+#     conn.send()
+    # client.status = status
+    # client.save()
+
 # Для запуска другим в отдельном процессе
 def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     global tg
@@ -38,12 +43,17 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.send_message(tg.me.id, 'Запустился')
     tg.add_message_handler(message_handler)
     tg.parent_conn.send('started')
-    try:
-        tg.idle()
-    finally:
-        tg.parent_conn.send('stopped')
+    tg.parent_conn.send('client.status = started;'
+                        f'client.user_id = {tg.me.id};'
+                        f'client.username = {tg.me.username};'
+                        'client.save();')
+    tg.idle()
 
 
 # Обработчик всех входящих сообщений
 def message_handler(update):
     print(update)
+
+
+# TODO: Обработчик закрытой сессии
+#  Отправлять статус о закрытой сессии. Отключать клиента.

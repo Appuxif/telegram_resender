@@ -21,11 +21,12 @@ class TelegramClientAdmin(admin.ModelAdmin):
     )
     inlines = (ChannelTunnelInline, )
 
-    # Удаляем удаленный клиент из
+    # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
         processor = apps.processor
-        if processor and obj in processor.clients:
+        if processor:
             processor.stop_client(obj)
+        return super(TelegramClientAdmin, self).delete_model(request, obj)
 
     def save_model(self, request, obj, form, change):
         processor = apps.processor
