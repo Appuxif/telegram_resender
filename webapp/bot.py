@@ -16,7 +16,7 @@ def parent_listener(conn):
 
 
 # Для запуска другим в отдельном процессе
-def start_bot(api_id, api_hash, phone, parent_conn, child_conn=None):
+def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     global tg
     tg = MyTelegram(
         api_id=api_id,
