@@ -19,7 +19,7 @@ class ChannelTunnelInline(admin.StackedInline):
 
 @admin.register(TelegramClient)
 class TelegramClientAdmin(admin.ModelAdmin):
-    list_display = ('phone', 'status', 'last_activity', 'date_created')
+    list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created')
     fieldsets = (
         ('Login codes', {'fields': ('code', 'password')}),
         ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
@@ -71,7 +71,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 print(sys.argv)
 
-if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' not in sys.argv or
+if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' in sys.argv or
         'manage.py' not in sys.argv):
     clients = [client for client in TelegramClient.objects.all() if client.active]
     processor = Processor(clients=clients)
