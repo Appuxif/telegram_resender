@@ -28,7 +28,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         print('Into save_model')
         print(change)
-
+        print(f"processor = '{processor}'")
         # При создании нового клиента объект этого клиента надо добавить в processor
         if processor and not change:
             processor.clients.append(obj)
