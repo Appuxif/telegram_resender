@@ -46,9 +46,9 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.send_message(tg.me.id, 'Запустился')
     tg.add_message_handler(message_handler)
     tg.parent_conn.send('started')
-    tg.parent_conn.send('client.status = started;'
-                        f'client.user_id = {tg.me.id};'
-                        f'client.username = {tg.me.username};'
+    tg.parent_conn.send('client.status = "started";'
+                        f'client.user_id = "{tg.me.id}";'
+                        f'client.username = "{tg.me.username}";'
                         'client.save();')
     tg.idle()
 
