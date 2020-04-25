@@ -68,18 +68,18 @@ class Processor:
 
     # Запуск нового клиента
     def start_new_client(self, client):
-        parent_conn, child_conn = mp.Pipe(duplex=False)
-        parent_conn2, child_conn2 = mp.Pipe(duplex=False)
-        self.client_processes[client.phone] = {'parent_conn': parent_conn, 'child_conn2': child_conn2}
+        conn_from, conn_to = mp.Pipe(duplex=False)
+        conn_from2, conn_to2 = mp.Pipe(duplex=False)
+        self.client_processes[client.phone] = {'send_to_child': conn_to2}
 
         self.client_processes[client.phone]['process'] = mp.Process(
             target=start_bot,
-            args=(client.api_id, client.api_hash, client.phone, parent_conn2, child_conn)
+            args=(client.api_id, client.api_hash, client.phone, conn_to, conn_from2)
         )
         self.client_processes[client.phone]['process'].start()
 
         self.client_processes[client.phone]['lisener_thread'] = threading.Thread(target=child_listener,
-                                                                                 args=(child_conn2, ))
+                                                                                 args=(conn_from, ))
         self.client_processes[client.phone]['lisener_thread'].start()
         self.vprint(client.phone, 'запущен новый процесс')
 
