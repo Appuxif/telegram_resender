@@ -17,7 +17,7 @@ class TelegramClient(models.Model):
     status = models.CharField(max_length=50, null=True, blank=True)
 
     last_modified = models.DateTimeField('Дата последней активности', auto_now=True)
-    last_launched = models.DateTimeField('Дата последнего запуска')
+    last_launched = models.DateTimeField('Дата последнего запуска', null=True)
     date_created = models.DateTimeField('Дата создания', auto_now_add=True)
 
     active = models.BooleanField('Запущен', default=True)
