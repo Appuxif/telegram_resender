@@ -8,7 +8,7 @@ import sys
 
 from bot import start_bot
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
 # django.setup()
 
 

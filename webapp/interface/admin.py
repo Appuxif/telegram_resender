@@ -1,7 +1,11 @@
+import threading
 from django.contrib import admin
 from .models import TelegramClient, ChannelTunnel, Message
 # from .apps import processor
-from . import apps
+
+from bot_processor import Processor
+
+
 # Register your models here.
 
 
@@ -23,13 +27,13 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
-        processor = apps.processor
+        # processor = apps.processor
         if processor:
             processor.stop_client(obj)
         return super(TelegramClientAdmin, self).delete_model(request, obj)
 
     def save_model(self, request, obj, form, change):
-        processor = apps.processor
+        # processor = apps.processor
         print('Into save_model')
         print(change)
         print(f"processor = '{processor}'")
@@ -59,3 +63,8 @@ class ChannelTunnelAdmin(admin.ModelAdmin):
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     pass
+
+
+processor = Processor(clients=list(TelegramClient.objects.all()))
+t = threading.Thread(target=processor.go_processor, daemon=True)
+t.start()
