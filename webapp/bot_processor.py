@@ -1,4 +1,5 @@
 import traceback
+from datetime import datetime
 from time import sleep
 import os
 import multiprocessing as mp
@@ -42,7 +43,7 @@ class Processor:
         if client.phone in self.client_processes:
             self.check_client(client)
         # Если процесс не запущен, то запускем
-        else:
+        if client.phone not in self.client_processes:
             self.start_new_client(client)
 
     # Проверяет состояние запущенного процесса клиента
@@ -79,6 +80,14 @@ class Processor:
         )
         self.client_processes[client.phone]['lisener_thread'].start()
         self.vprint(client.phone, 'запущен новый процесс')
+        client.last_launched = datetime.now()
+        client.save()
+
+    # Добавление нового клиента в список
+    def add_client(self, client):
+        if client not in self.clients:
+            self.vprint('Добавлен новый клиент в список', client)
+            self.clients.append(client)
 
     # Остановка клиента
     def stop_client(self, client):
@@ -127,6 +136,9 @@ class Processor:
         while True:
             try:
                 exec(conn.recv())
+            except EOFError:
+                print('Канал закрылся')
+                return
             except Exception as err:
                 traceback.print_exc(file=sys.stdout)
                 print('Ошибка от дочернего')

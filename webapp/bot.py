@@ -10,6 +10,9 @@ def parent_listener(conn):
     while True:
         try:
             exec(conn.recv())
+        except EOFError:
+            print('Канал закрылся')
+            return
         except Exception as err:
             print('Ошибка от родителя')
             print(err)

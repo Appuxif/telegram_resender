@@ -1,4 +1,6 @@
 import threading
+
+import sys
 from django.contrib import admin
 from .models import TelegramClient, ChannelTunnel, Message
 # from .apps import processor
@@ -19,11 +21,12 @@ class ChannelTunnelInline(admin.StackedInline):
 class TelegramClientAdmin(admin.ModelAdmin):
     list_display = ('phone', 'status', 'last_activity', 'date_created')
     fieldsets = (
-        (None, {'fields': ('phone', 'api_id', 'api_hash')}),
-        (None, {'fields': ('username', 'user_id', 'status')}),
         ('Login codes', {'fields': ('code', 'password')}),
+        ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
+        ('User Info', {'fields': ('username', 'user_id', 'status')}),
+        (None, {'fields': ('active',)}),
     )
-    inlines = (ChannelTunnelInline, )
+    inlines = (ChannelTunnelInline,)
 
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
@@ -34,14 +37,14 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         # processor = apps.processor
-        print('Into save_model')
-        print(change)
-        print(f"processor = '{processor}'")
         # При создании нового клиента объект этого клиента надо добавить в processor
-        if processor and not change:
-            processor.clients.append(obj)
-
         if processor:
+            print(processor.clients)
+            if obj.active:
+                processor.add_client(obj)
+            else:
+                processor.stop_client(obj)
+
             if obj.code:
                 print(obj.code)
                 processor.send_code_to_client(obj)
@@ -49,6 +52,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
             if obj.password:
                 print(obj.password)
                 processor.send_password_to_client(obj)
+
         obj.code = None
         obj.password = None
         return super(TelegramClientAdmin, self).save_model(request, obj, form, change)
@@ -65,6 +69,10 @@ class MessageAdmin(admin.ModelAdmin):
     pass
 
 
-processor = Processor(clients=list(TelegramClient.objects.all()))
-t = threading.Thread(target=processor.go_processor, daemon=True)
-t.start()
+print(sys.argv)
+clients = [client for client in TelegramClient.objects.all() if client.active]
+processor = Processor(clients=clients)
+if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' not in sys.argv or
+        'manage.py' not in sys.argv):
+    t = threading.Thread(target=processor.go_processor, daemon=True)
+    t.start()
