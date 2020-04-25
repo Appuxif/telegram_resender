@@ -19,7 +19,7 @@ class TelegramClient(models.Model):
     last_activity = models.DateTimeField('Дата последней активности', auto_now=True)
     date_created = models.DateTimeField('Дата создания', auto_now_add=True)
 
-    # active = models.BooleanField('Запущен', default=True)
+    active = models.BooleanField('Запущен', default=True)
 
     def __str__(self):
         return str(self.phone)
