@@ -1,24 +1,33 @@
 from time import sleep
-
-# import django
 import os
 import multiprocessing as mp
-
-# from interface.models import TelegramClient
+import threading
 
 from bot import start_bot
 
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
 # django.setup()
 
 
+# Слушает сообщение от дочернего процесса. Получает имя изображения, отправляет его в ТГ
+def child_listener(conn):
+    while True:
+        try:
+            exec(conn.recv())
+        except Exception as err:
+            print('Ошибка от дочернего')
+            print(err)
+
+
+# Запускать только в окружении Django
 class Processor:
     client_processes = {}
 
     def __init__(self, clients, verbose=True):
+        from interface.models import TelegramClient
+        self.TelegramClient = TelegramClient
         self.clients = list(clients)
         self.verbose = verbose
-        self.parent_conn, self.child_conn = mp.Pipe()
         self.vprint('Запущен процессор')
 
     def vprint(self, *args, **kwargs):
@@ -59,20 +68,20 @@ class Processor:
 
     # Запуск нового клиента
     def start_new_client(self, client):
-        parent_conn, child_conn = mp.Pipe()
-        self.client_processes[client.phone] = {'parent_conn': parent_conn, 'child_conn': child_conn}
+        parent_conn, child_conn = mp.Pipe(duplex=False)
+        parent_conn2, child_conn2 = mp.Pipe(duplex=False)
+        self.client_processes[client.phone] = {'parent_conn': parent_conn, 'child_conn2': child_conn2}
+
         self.client_processes[client.phone]['process'] = mp.Process(
             target=start_bot,
-            args=(client.api_id, client.api_hash, client.phone, parent_conn, child_conn)
+            args=(client.api_id, client.api_hash, client.phone, parent_conn2, child_conn)
         )
-        # p = mp.Process(
-        #     target=start_bot,
-        #     args=(client.api_id, client.api_hash, client.phone, parent_conn, child_conn)
-        # )
-        # p.exitcode
         self.client_processes[client.phone]['process'].start()
-        self.vprint(client.phone, 'запущен новый процесс')
 
+        self.client_processes[client.phone]['lisener_thread'] = threading.Thread(target=child_listener,
+                                                                                 args=(child_conn2, ))
+        self.client_processes[client.phone]['lisener_thread'].start()
+        self.vprint(client.phone, 'запущен новый процесс')
 
     # Остановка клиента
     def stop_client(self, client):
