@@ -9,16 +9,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
 # django.setup()
 
 
-# Слушает сообщение от дочернего процесса. Получает имя изображения, отправляет его в ТГ
-def child_listener(conn):
-    while True:
-        try:
-            exec(conn.recv())
-        except Exception as err:
-            print('Ошибка от дочернего')
-            print(err)
-
-
 # Запускать только в окружении Django
 class Processor:
     client_processes = {}
@@ -37,8 +27,8 @@ class Processor:
     # Основной процесс для запуска клиентов
     def go_processor(self):
         while True:
-            print(self.clients)
-            print(self.client_processes)
+            # print(self.clients)
+            # print(self.client_processes)
             for client in self.clients:
                 self.process_client(client)
             sleep(10)
@@ -68,18 +58,18 @@ class Processor:
 
     # Запуск нового клиента
     def start_new_client(self, client):
-        conn_from, conn_to = mp.Pipe(duplex=False)
-        conn_from2, conn_to2 = mp.Pipe(duplex=False)
-        self.client_processes[client.phone] = {'send_to_child': conn_to2}
+        r1, t1 = mp.Pipe(duplex=False)
+        r2, t2 = mp.Pipe(duplex=False)
+        self.client_processes[client.phone] = {'send_to_child': t2}
 
         self.client_processes[client.phone]['process'] = mp.Process(
             target=start_bot,
-            args=(client.api_id, client.api_hash, client.phone, conn_to, conn_from2)
+            args=(client.api_id, client.api_hash, client.phone, t1, r2)
         )
         self.client_processes[client.phone]['process'].start()
 
-        self.client_processes[client.phone]['lisener_thread'] = threading.Thread(target=child_listener,
-                                                                                 args=(conn_from, ))
+        self.client_processes[client.phone]['lisener_thread'] = threading.Thread(target=self.child_listener,
+                                                                                 args=(client, r1))
         self.client_processes[client.phone]['lisener_thread'].start()
         self.vprint(client.phone, 'запущен новый процесс')
 
@@ -123,3 +113,14 @@ class Processor:
         else:
             self.vprint(client.phone, 'вызван send_password_to_client но пароль не получен')
 
+    # Слушает сообщение от дочернего процесса. Получает имя изображения, отправляет его в ТГ
+    def child_listener(self, client, conn):
+        while True:
+            try:
+                status = conn.recv()
+                client.status = status
+                client.save()
+                # exec(conn.recv())
+            except Exception as err:
+                print('Ошибка от дочернего')
+                print(err)

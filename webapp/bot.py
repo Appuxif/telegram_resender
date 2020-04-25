@@ -37,8 +37,11 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.do_get_me()
     tg.send_message(tg.me.id, 'Запустился')
     tg.add_message_handler(message_handler)
-    tg.parent_conn.send('print("BOT LOADED")')
-    tg.idle()
+    tg.parent_conn.send('started')
+    try:
+        tg.idle()
+    finally:
+        tg.parent_conn.send('stopped')
 
 
 # Обработчик всех входящих сообщений
