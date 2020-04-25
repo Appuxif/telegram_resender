@@ -17,4 +17,3 @@ class InterfaceConfig(AppConfig):
             processor = Processor(clients=list(TelegramClient.objects.all()))
             t = threading.Thread(target=processor.go_processor, daemon=True)
             t.start()
-            print('Запущен процессор ботов')

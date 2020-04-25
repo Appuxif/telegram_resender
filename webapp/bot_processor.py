@@ -19,6 +19,7 @@ class Processor:
         self.clients = list(clients)
         self.verbose = verbose
         self.parent_conn, self.child_conn = mp.Pipe()
+        self.vprint('Запущен процессор')
 
     def vprint(self, *args, **kwargs):
         if self.verbose:
@@ -27,9 +28,11 @@ class Processor:
     # Основной процесс для запуска клиентов
     def go_processor(self):
         while True:
+            print(self.clients)
+            print(self.client_processes)
             for client in self.clients:
                 self.process_client(client)
-            sleep(5)
+            sleep(10)
 
     # Обработка клиентов. Запуск и перезапуск
     def process_client(self, client):
