@@ -70,9 +70,10 @@ class MessageAdmin(admin.ModelAdmin):
 
 
 print(sys.argv)
-clients = [client for client in TelegramClient.objects.all() if client.active]
-processor = Processor(clients=clients)
+
 if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' not in sys.argv or
         'manage.py' not in sys.argv):
+    clients = [client for client in TelegramClient.objects.all() if client.active]
+    processor = Processor(clients=clients)
     t = threading.Thread(target=processor.go_processor, daemon=True)
     t.start()
