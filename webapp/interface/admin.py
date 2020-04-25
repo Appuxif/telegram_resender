@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import TelegramClient, ChannelTunnel, Message
-from .apps import processor
+# from .apps import processor
+from . import apps
 # Register your models here.
 
 
@@ -22,10 +23,12 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     # Удаляем удаленный клиент из
     def delete_model(self, request, obj):
+        processor = apps.processor
         if processor and obj in processor.clients:
             processor.stop_client(obj)
 
     def save_model(self, request, obj, form, change):
+        processor = apps.processor
         print('Into save_model')
         print(change)
         print(f"processor = '{processor}'")
@@ -33,7 +36,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
         if processor and not change:
             processor.clients.append(obj)
 
-        if processor and obj.phone in processor.client_processes:
+        if processor:
             if obj.code:
                 print(obj.code)
                 processor.send_code_to_client(obj)

@@ -15,5 +15,5 @@ class InterfaceConfig(AppConfig):
         if processor is None:
             from .models import TelegramClient
             processor = Processor(clients=list(TelegramClient.objects.all()))
-            t = threading.Thread(target=processor.go_processor, daemon=True)
-            t.start()
+            # t = threading.Thread(target=processor.go_processor, daemon=True)
+            # t.start()
