@@ -75,7 +75,8 @@ class Processor:
 
         self.client_processes[client.phone]['process'] = mp.Process(
             target=start_bot,
-            args=(client.api_id, client.api_hash, client.phone, t1, r2)
+            args=(client.api_id, client.api_hash, client.phone, t1, r2),
+            daemon=True
         )
         self.client_processes[client.phone]['process'].start()
 
