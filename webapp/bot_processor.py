@@ -109,6 +109,28 @@ class Processor:
         else:
             self.vprint(client.phone, 'stop_client процесс клиента не найден')
 
+    # Перезапуск процесса клиента
+    def reload_client(self, client):
+        # Убиваем процесс. Он перезагрузится
+        client_process = self.client_processes.get(client.phone)
+        if client_process:
+            client_process['process'].terminate()
+            self.vprint(client.phone, 'reload_client процесс клиента остановлен')
+            # client.status = status
+            # client.save()
+        else:
+            self.vprint(client.phone, 'reload_client процесс клиента не найден')
+
+    # Обновляет список каналов у клиента
+    def reload_client_channels(self, client):
+        client_process = self.client_processes.get(client.phone)
+        if client_process:
+            client_process['send_to_child'].send(
+                'load_channels();'
+            )
+        else:
+            self.vprint(client.phone, 'reload_client_channels процесс клиента не найден')
+
     # Отправка кода авторизации клиенту
     def send_code_to_client(self, client):
         if client.code:

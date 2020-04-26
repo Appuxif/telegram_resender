@@ -39,7 +39,7 @@ class ChannelTunnel(models.Model):
     active = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.from_id) + ' - ' + str(self.to_id)
+        return str(self.from_name) + (' -> ' + str(self.to_name) if self.to_name else '')
 
 
 # Объект для соответствия сообщений с одного канала в другой. Нужно для реплаев

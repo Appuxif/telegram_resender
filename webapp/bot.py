@@ -70,9 +70,9 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     from interface.models import ChannelTunnel, TelegramClient
     tg.ChannelTunnel = ChannelTunnel
     tg.client = TelegramClient.objects.get(phone=tg.phone)
-    tg.channels = {channel.from_id: {'to_id': channel.to_id, 'active': channel.active}
-                   for channel in ChannelTunnel.objects.filter(client=tg.client)}
-    print(tg.channels)
+    # Загрузка каналов в список tg.channels
+    tg.channels = {}
+    load_channels()
     tg.idle()
 
 
@@ -80,15 +80,21 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
 def message_handler(update):
     print('message_handler', update)
     msg = Message(update, tg)
-    print(f'{tg.phone} {msg.chat.username}:{msg.from_user.first_name} '
+    print(f'{tg.phone} {msg.chat.title}:{msg.chat.username}:{msg.from_user.first_name} '
           f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}')
 
-    # Проверка чата в БД
+    # Проверка канала в списке
     if msg.chat.id not in tg.channels:
+        # Если канала в списке нет, до добавляем его в БД и список
         print('Новый канал!')
         tg.channels[msg.chat.id] = {'to_id': None, 'active': False}
         new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg.chat.id, from_name=msg.chat.title)
         new_channel.save()
+    elif tg.channels[msg.chat.id]['active'] and tg.channels[msg.chat.id]['to_id']:
+        # Если канал есть в списке и требуется пересылка, то производим пересылку сообщения в другой канал
+        mes = tg.send_message(tg.channels[msg.chat.id]['to_id'], msg.text)
+        print(mes.update)
+        # Сохранение сообщения в БД
 
 
 # Обработчик остальных обновлений
@@ -115,6 +121,11 @@ def updateauthorizationstate_handler(update):
             'self.stop_client(client, "session closed");'
         )
 
+
+def load_channels():
+    tg.channels = {channel.from_id: {'to_id': channel.to_id, 'active': channel.active}
+                   for channel in tg.ChannelTunnel.objects.filter(client=tg.client)}
+    print(tg.phone, 'Список каналов загружен\n', tg.channels)
 
 # TODO: Обработчик закрытой сессии
 #  Отправлять статус о закрытой сессии. Отключать клиента.

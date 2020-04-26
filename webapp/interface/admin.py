@@ -7,13 +7,13 @@ from .models import TelegramClient, ChannelTunnel, Message
 
 from bot_processor import Processor
 
-
-# Register your models here.
+processor = None
 
 
 class ChannelTunnelInline(admin.StackedInline):
     model = ChannelTunnel
     extra = 0
+    ordering = ('-to_id', )
     # exclude = ('client', )
 
 
@@ -35,11 +35,27 @@ class TelegramClientAdmin(admin.ModelAdmin):
             processor.stop_client(obj)
         return super(TelegramClientAdmin, self).delete_model(request, obj)
 
+    def save_related(self, request, form, formsets, change):
+        print('in save_related')
+        print(form.instance)
+        print(formsets)
+        print(dir(formsets[0]))
+        for formset in formsets:
+            print(formset.forms)
+            print(formset.queryset)
+            print(formset.instance)
+        super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
+        if processor:
+            processor.reload_client_channels(form.instance)
+        # if processor:
+        #     processor.reload_client()
+        # return super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
+
     def save_model(self, request, obj, form, change):
         # processor = apps.processor
         # При создании нового клиента объект этого клиента надо добавить в processor
         if processor:
-            print(processor.clients)
+            # print(processor.clients)
             if obj.active:
                 processor.add_client(obj)
             else:
@@ -70,7 +86,6 @@ class MessageAdmin(admin.ModelAdmin):
 
 
 print(sys.argv)
-
 if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' in sys.argv or
         'manage.py' not in sys.argv):
     clients = [client for client in TelegramClient.objects.all() if client.active]
