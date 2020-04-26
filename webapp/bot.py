@@ -165,18 +165,9 @@ def resend_message(update, msg):
     msg_chat_id = str(msg.chat.id)
 
     # Отправка копии сообщения во второй канал
-    if msg.content_type == 'text':
-        mes = resend_text(update, msg)
-
-    elif msg.content_type == 'photo':
-        mes = resend_photo(update, msg)
-
-    elif msg.content_type == 'document':
-        mes = resend_document(update, msg)
-
-    elif msg.content_type == 'video':
-        mes = resend_video(update, msg)
-    else:
+    try:
+        mes = resend_dict[msg.content_type](update, msg)
+    except KeyError:
         mes = None
 
     if mes is None:
@@ -302,6 +293,38 @@ def resend_video(update, msg):
             }
         })
     return None
+
+
+# Переотправляет стикер
+def resend_sticker(update, msg):
+    msg_chat_id = str(msg.chat.id)
+    message = update.get('message', {})
+    content = message.get('content', {})
+    sticker_id = content.get('sticker', {}).get('sticker', {}).get('remote', {}).get('id')
+    print('sticker_id', sticker_id)
+
+    if sticker_id:
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessageVideo',
+                'video': {
+                    '@type': 'inputFileRemote',
+                    'id': sticker_id
+                },
+            }
+        })
+    return None
+
+
+resend_dict = {
+    'text': resend_text,
+    'photo': resend_photo,
+    'document': resend_document,
+    'video': resend_video,
+    'sticker': resend_sticker
+}
 
 
 # TODO: Обработчик закрытой сессии
