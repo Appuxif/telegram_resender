@@ -183,6 +183,20 @@ def resend_message(update, msg):
         new_message.save()
 
 
+# Возвращает ID сообщения для реплая
+def get_reply_to_message_id(msg):
+    # Если есть реплай, то нужно достать из БД ID копии сообщения этого реплая
+    reply_to_message_id = 0
+    if msg.reply_to_message:
+        from_message_id = msg.reply_to_message.message_id
+        message_from_db = tg.TelegramMessage.objects.filter(channel=tg.channels[str(msg.chat.id)],
+                                                            from_message_id=from_message_id).first()
+        print('message_from_db', message_from_db, '\n')
+        if message_from_db:
+            reply_to_message_id = message_from_db.to_message_id
+    return reply_to_message_id
+
+
 # Переотправляет обычный текст
 def resend_text(update, msg):
     msg_chat_id = str(msg.chat.id)
@@ -191,37 +205,36 @@ def resend_text(update, msg):
     content = message.get('content', {})
     text = content.get('text', {})
 
-    reply_to_message_id = 0
-    # Если есть реплай, то нужно достать из БД ID копии сообщения этого реплая
-    if msg.reply_to_message:
-        from_message_id = msg.reply_to_message.message_id
-        message_from_db = tg.TelegramMessage.objects.filter(channel=tg.channels[msg_chat_id],
-                                                            from_message_id=from_message_id).first()
-        print('message_from_db', message_from_db, '\n')
-        if message_from_db:
-            reply_to_message_id = message_from_db.to_message_id
-
     return tg.call_method('sendMessage', {
-            'chat_id': tg.channels[msg_chat_id].to_id,
-            'reply_to_message_id': reply_to_message_id,
-            'input_message_content': {
-                '@type': 'inputMessageText',
-                'text': text,
-                'disable_web_page_preview': True
-            }
-        })
-
-
-    # return tg.send_message(tg.channels[msg_chat_id].to_id, msg.text, reply_to_message_id=reply_to_message_id)
+        'chat_id': tg.channels[msg_chat_id].to_id,
+        'reply_to_message_id': get_reply_to_message_id(msg),
+        'input_message_content': {
+            '@type': 'inputMessageText',
+            'text': text,
+            'disable_web_page_preview': True
+        }
+    })
 
 
 # Переотправляет обычный фото
 def resend_photo(update, msg):
+    msg_chat_id = str(msg.chat.id)
     message = update.get('message', {})
     content = message.get('content', {})
 
     photo = content.get('photo', {})
     caption = content.get('caption', {})
+
+    return tg.call_method('sendMessage', {
+        'chat_id': tg.channels[msg_chat_id].to_id,
+        'reply_to_message_id': get_reply_to_message_id(msg),
+        'input_message_content': {
+            "@type": 'inputMessagePhoto',
+            'photo': photo,
+            'caption': caption
+        }
+    })
+
 
 
 # TODO: Обработчик закрытой сессии
