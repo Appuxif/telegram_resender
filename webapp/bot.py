@@ -318,12 +318,38 @@ def resend_sticker(update, msg):
     return None
 
 
+# Переотправляет гифку
+def resend_animation(update, msg):
+    msg_chat_id = str(msg.chat.id)
+    message = update.get('message', {})
+    content = message.get('content', {})
+    animation_id = content.get('animation', {}).get('animation', {}).get('remote', {}).get('id')
+    print('animation_id', animation_id)
+
+    if animation_id:
+        caption = content.get('caption', {})
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessageAnimation',
+                'animation': {
+                    '@type': 'inputFileRemote',
+                    'id': animation_id
+                },
+                'caption': caption
+            }
+        })
+    return None
+
+
 resend_dict = {
     'text': resend_text,
     'photo': resend_photo,
     'document': resend_document,
     'video': resend_video,
-    'sticker': resend_sticker
+    'sticker': resend_sticker,
+    'animation': resend_animation,
 }
 
 
