@@ -4,7 +4,7 @@ from time import sleep
 import os
 import multiprocessing as mp
 import threading
-
+import django
 import sys
 
 from bot import start_bot
@@ -68,6 +68,7 @@ class Processor:
 
     # Запуск нового клиента
     def start_new_client(self, client):
+        django.db.close_old_connections()
         r1, t1 = mp.Pipe(duplex=False)
         r2, t2 = mp.Pipe(duplex=False)
         self.client_processes[client.phone] = {'send_to_child': t2}
@@ -106,12 +107,14 @@ class Processor:
 
         # Убиваем процесс
         if client.phone in self.client_processes:
+            django.db.close_old_connections()
             client_process = self.client_processes.pop(client.phone)
             client_process['process'].terminate()
-            self.vprint(client.phone, 'stop_client процесс клиента остановлен')
+            client_process['lisener_thread'].join()
             client.status = status
             client.active = False
             client.save()
+            self.vprint(client.phone, 'stop_client процесс клиента остановлен')
         else:
             self.vprint(client.phone, 'stop_client процесс клиента не найден')
 
