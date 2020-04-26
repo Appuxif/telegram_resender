@@ -185,12 +185,13 @@ def resend_message(update, msg):
 
 # Переотправляет обычный текст
 def resend_text(update, msg):
+    msg_chat_id = str(msg.chat.id)
+
     message = update.get('message', {})
     content = message.get('content', {})
     text = content.get('text', {})
 
     reply_to_message_id = 0
-    msg_chat_id = str(msg.chat.id)
     # Если есть реплай, то нужно достать из БД ID копии сообщения этого реплая
     if msg.reply_to_message:
         from_message_id = msg.reply_to_message.message_id
@@ -201,7 +202,7 @@ def resend_text(update, msg):
             reply_to_message_id = message_from_db.to_message_id
 
     return tg.call_method('sendMessage', {
-            'chat_id': msg.chat.id,
+            'chat_id': tg.channels[msg_chat_id].to_id,
             'reply_to_message_id': reply_to_message_id,
             'input_message_content': {
                 '@type': 'inputMessageText',
