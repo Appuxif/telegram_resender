@@ -18,9 +18,10 @@ tg = None
 
 def status_polling():
     # timer = monotonic()
-    timer = -61
+    timer = monotonic()
     while True:
-        if monotonic() - timer > 60:
+        # Обновлять статус каждые пять минут
+        if monotonic() - timer > 300:
             timer = monotonic()
             tg.parent_conn.send('client.status = "working";'
                                 'client.save();')

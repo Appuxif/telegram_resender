@@ -20,7 +20,7 @@ class ChannelTunnelInline(admin.StackedInline):
 
 @admin.register(TelegramClient)
 class TelegramClientAdmin(admin.ModelAdmin):
-    list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created')
+    list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created', 'active')
     fieldsets = (
         ('Login codes', {'fields': ('active', 'status', 'code', 'password'),
                          'description': 'Вводить только по требованию'}),
@@ -83,11 +83,12 @@ class TelegramClientAdmin(admin.ModelAdmin):
 class ChannelTunnelAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'client', 'from_id', 'to_id', 'active')
     search_fields = ('from_name', 'from_id')
+    list_display_links = None
 
 
-@admin.register(Message)
-class MessageAdmin(admin.ModelAdmin):
-    pass
+# @admin.register(Message)
+# class MessageAdmin(admin.ModelAdmin):
+#     list_display_links = None
 
 
 print(sys.argv)
