@@ -100,6 +100,7 @@ class Processor:
     def load_clients(self):
         self.clients = {client.phone: {'client': client}
                         for client in self.TelegramClient.objects.all() if client.active}
+        print(self.clients)
 
     # Добавление нового клиента в список
     def add_client(self, client_phone):
@@ -194,8 +195,10 @@ class Processor:
 
     # В этом потоке будут слушаться запросы от сервера
     def listener_thread(self):
-        with mp.connection.Listener(('localhost', 60000), authkey=b'testauthkey') as listener:
+        print('Запуск листенера')
+        with mp.connection.Listener(('localhost', 65535)) as listener:
             with listener.accept() as conn:
+                print('connection accepted from', listener.last_accepted)
                 # while True:
                 try:
                     exec(conn.recv())
@@ -209,4 +212,4 @@ class Processor:
 
 if __name__ == '__main__':
     processor = Processor()
-    processor.go_processor()
+    # processor.go_processor()

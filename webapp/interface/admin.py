@@ -8,7 +8,7 @@ from .models import TelegramClient, ChannelTunnel, Message
 from multiprocessing.connection import Client
 # from .apps import processor
 
-from bot_processor import Processor
+# from bot_processor import Processor
 
 # processor = None
 
