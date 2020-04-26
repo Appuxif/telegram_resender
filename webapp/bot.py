@@ -170,7 +170,9 @@ def resend_message(update, msg):
 
     elif msg.content_type == 'photo':
         mes = resend_photo(update, msg)
-
+    if mes is None:
+        print('mes is None')
+        return
     mes.wait(timeout=5)
     print('mes.update', mes.update, '\n')
     print('mes.error_info', mes.error_info, '\n')
@@ -206,21 +208,15 @@ def resend_text(update, msg):
     content = message.get('content', {})
     text = content.get('text', {})
 
-    # return tg.call_method('sendMessage', {
-    #     'chat_id': tg.channels[msg_chat_id].to_id,
-    #     'reply_to_message_id': get_reply_to_message_id(msg),
-    #     'input_message_content': {
-    #         '@type': 'inputMessageText',
-    #         'text': text,
-    #         'disable_web_page_preview': True
-    #     }
-    # })
     return tg.call_method('sendMessage', {
-            'chat_id': tg.channels[msg_chat_id].to_id,
-            'reply_to_message_id': get_reply_to_message_id(msg),
-            'input_message_content': content
-        })
-
+        'chat_id': tg.channels[msg_chat_id].to_id,
+        'reply_to_message_id': get_reply_to_message_id(msg),
+        'input_message_content': {
+            '@type': 'inputMessageText',
+            'text': text,
+            'disable_web_page_preview': True
+        }
+    })
 
 
 # Переотправляет обычный фото
@@ -229,22 +225,23 @@ def resend_photo(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
 
-    photo = content.get('photo', {})
-    caption = content.get('caption', {})
-    return tg.call_method('sendMessage', {
-        'chat_id': tg.channels[msg_chat_id].to_id,
-        'reply_to_message_id': get_reply_to_message_id(msg),
-        'input_message_content': content
-    })
-    # return tg.call_method('sendMessage', {
-    #     'chat_id': tg.channels[msg_chat_id].to_id,
-    #     'reply_to_message_id': get_reply_to_message_id(msg),
-    #     'input_message_content': {
-    #         "@type": 'inputMessagePhoto',
-    #         'photo': photo,
-    #         'caption': caption
-    #     }
-    # })
+    photo = content.get('photo', {}).get('sizes', [])
+    if photo:
+        photo_id = photo[-1]['photo']['remote']['id']
+        caption = content.get('caption', {})
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessagePhoto',
+                'photo': {
+                    '@type': 'inputFileRemote',
+                    'id': photo_id
+                },
+                'caption': caption
+            }
+        })
+    return None
 
 
 
