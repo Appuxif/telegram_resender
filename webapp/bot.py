@@ -343,6 +343,31 @@ def resend_animation(update, msg):
     return None
 
 
+# Переотправляет аудио
+def resend_audio(update, msg):
+    msg_chat_id = str(msg.chat.id)
+    message = update.get('message', {})
+    content = message.get('content', {})
+    audio_id = content.get('audio', {}).get('audio', {}).get('remote', {}).get('id')
+    print('audio_id', audio_id)
+
+    if audio_id:
+        caption = content.get('caption', {})
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessageAudio',
+                'audio': {
+                    '@type': 'inputFileRemote',
+                    'id': audio_id
+                },
+                'caption': caption
+            }
+        })
+    return None
+
+
 resend_dict = {
     'text': resend_text,
     'photo': resend_photo,
@@ -350,6 +375,7 @@ resend_dict = {
     'video': resend_video,
     'sticker': resend_sticker,
     'animation': resend_animation,
+    'audio': resend_audio,
 }
 
 
