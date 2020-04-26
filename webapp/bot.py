@@ -87,7 +87,7 @@ def message_handler(update):
     if msg.chat.id not in tg.channels:
         print('Новый канал!')
         tg.channels[msg.chat.id] = {'to_id': None, 'active': False}
-        new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg.chat.id, from_name=msg.chat.username)
+        new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg.chat.id, from_name=msg.chat.title)
         new_channel.save()
 
 
