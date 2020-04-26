@@ -38,7 +38,7 @@ class Processor:
             # print(self.clients)
             # print(self.client_processes)
             for client_phone in self.clients:
-                client = self.clients[client_phone]
+                client = self.clients[client_phone]['client']
                 try:
                     self.process_client(client)
                 except Exception:
