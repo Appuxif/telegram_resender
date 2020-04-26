@@ -170,6 +170,13 @@ def resend_message(update, msg):
 
     elif msg.content_type == 'photo':
         mes = resend_photo(update, msg)
+
+    elif msg.content_type == 'document':
+        mes = resend_document(update, msg)
+
+    else:
+        mes = None
+
     if mes is None:
         print('mes is None')
         return
@@ -224,7 +231,6 @@ def resend_photo(update, msg):
     msg_chat_id = str(msg.chat.id)
     message = update.get('message', {})
     content = message.get('content', {})
-
     photo = content.get('photo', {}).get('sizes', [])
     if photo:
         photo_id = photo[-1]['photo']['remote']['id']
@@ -244,6 +250,28 @@ def resend_photo(update, msg):
     return None
 
 
+# Переотправляет документ
+def resend_document(update, msg):
+    msg_chat_id = str(msg.chat.id)
+    message = update.get('message', {})
+    content = message.get('content', {})
+    document_id = content.get('document', {}).get('document', {}).get('remote', {}).get('id')
+
+    if document_id:
+        caption = content.get('caption', {})
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessageDocument',
+                'photo': {
+                    '@type': 'inputFileRemote',
+                    'id': document_id
+                },
+                'caption': caption
+            }
+        })
+    return None
 
 # TODO: Обработчик закрытой сессии
 #  Отправлять статус о закрытой сессии. Отключать клиента.
