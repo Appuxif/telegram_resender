@@ -27,6 +27,8 @@ class Processor:
         # self.clients = list(clients)
         self.verbose = verbose
         self.vprint('Запущен процессор')
+        self.listener = threading.Thread(target=self.listener_thread)
+        self.listener.start()
 
     def vprint(self, *args, **kwargs):
         if self.verbose:
