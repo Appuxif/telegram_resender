@@ -267,7 +267,7 @@ def resend_document(update, msg):
             'reply_to_message_id': get_reply_to_message_id(msg),
             'input_message_content': {
                 "@type": 'inputMessageDocument',
-                'photo': {
+                'document': {
                     '@type': 'inputFileRemote',
                     'id': document_id
                 },
