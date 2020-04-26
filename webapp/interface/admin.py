@@ -53,7 +53,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
         try:
-            with Client(('localhost', 60000), authkey=b'testauthkey') as conn:
+            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock', authkey=b'testauthkey') as conn:
                 conn.send(f'self.stop_client("{obj.phone}")')
         except:
             print('delete_model Ошибка подключения')
@@ -65,7 +65,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
         try:
-            with Client(('localhost', 60000), authkey=b'testauthkey') as conn:
+            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock', authkey=b'testauthkey') as conn:
                 conn.send(f'self.reload_client_channels("{form.instance.phone}")')
         except:
             print('save_related Ошибка подключения')
@@ -75,7 +75,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         try:
-            with Client(('localhost', 60000), authkey=b'testauthkey') as conn:
+            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock', authkey=b'testauthkey') as conn:
             # if processor:
                 if obj.active:
                     # processor.add_client(obj)
