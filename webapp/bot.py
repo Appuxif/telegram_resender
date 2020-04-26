@@ -69,7 +69,7 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
 
     from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
     tg.ChannelTunnel = ChannelTunnel
-    tg.Message = TelegramMessage
+    tg.TelegramMessage = TelegramMessage
 
     tg.client = TelegramClient.objects.get(phone=tg.phone)
     # Загрузка каналов в список tg.channels
@@ -124,7 +124,11 @@ def updateauthorizationstate_handler(update):
 def load_channels():
     tg.channels = {channel.from_id: channel
                    for channel in tg.ChannelTunnel.objects.filter(client=tg.client)}
-    print(tg.phone, 'Список каналов загружен\n', tg.channels, '\n')
+    print(tg.phone, 'Список каналов загружен')
+    # TODO: Для отладки. Потом удалить
+    for channel in tg.channels:
+        print(channel.from_id, channel.from_name, channel.to_id, channel.to_name, channel.active)
+    print()
 
 
 def add_new_channel_to_db(msg):
