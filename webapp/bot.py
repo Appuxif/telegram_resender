@@ -368,6 +368,31 @@ def resend_audio(update, msg):
     return None
 
 
+# Переотправляет видео запись
+def resend_video_note(update, msg):
+    msg_chat_id = str(msg.chat.id)
+    message = update.get('message', {})
+    content = message.get('content', {})
+    video_note_id = content.get('video_note', {}).get('video', {}).get('remote', {}).get('id')
+    print('video_note_id', video_note_id)
+
+    if video_note_id:
+        caption = content.get('caption', {})
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessageVideoNote',
+                'video_note': {
+                    '@type': 'inputFileRemote',
+                    'id': video_note_id
+                },
+                'caption': caption
+            }
+        })
+    return None
+
+
 resend_dict = {
     'text': resend_text,
     'photo': resend_photo,
@@ -376,6 +401,8 @@ resend_dict = {
     'sticker': resend_sticker,
     'animation': resend_animation,
     'audio': resend_audio,
+    'video_note': resend_video_note,
+
 }
 
 
