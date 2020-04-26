@@ -67,9 +67,12 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
                         'client.save();')
     django.setup()
 
-    from interface.models import ChannelTunnel
+    from interface.models import ChannelTunnel, TelegramClient
     tg.ChannelTunnel = ChannelTunnel
-
+    tg.client = TelegramClient.objects.get(phone=tg.phone)
+    tg.channels = {channel.from_id: {'to_id': channel.to_id, 'active': channel.active}
+                   for channel in ChannelTunnel.objects.filter(client=tg.client)}
+    print(tg.channels)
     tg.idle()
 
 
@@ -81,7 +84,11 @@ def message_handler(update):
           f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}')
 
     # Проверка чата в БД
-    tg.ChannelTunnel.objects.get_or_create(from_id=msg.chat.id)
+    if msg.chat.id not in tg.channels:
+        print('Новый канал!')
+        tg.channels[msg.chat.id] = {'to_id': None, 'active': False}
+        new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg.chat.id, from_name=msg.chat.username)
+        new_channel.save()
 
 
 # Обработчик остальных обновлений
