@@ -127,6 +127,7 @@ def load_channels():
     print(tg.phone, 'Список каналов загружен')
     # TODO: Для отладки. Потом удалить
     for channel in tg.channels:
+        channel = tg.channels[channel]
         print(channel.from_id, channel.from_name, channel.to_id, channel.to_name, channel.active)
     print()
 
