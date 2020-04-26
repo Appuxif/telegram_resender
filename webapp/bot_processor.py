@@ -194,7 +194,7 @@ class Processor:
 
     # В этом потоке будут слушаться запросы от сервера
     def listener_thread(self):
-        with mp.connection.Listener('unix:/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as listener:
+        with mp.connection.Listener(('localhost', 60000), authkey=b'testauthkey') as listener:
             with listener.accept() as conn:
                 while True:
                     try:
