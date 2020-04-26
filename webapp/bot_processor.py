@@ -1,5 +1,5 @@
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from time import sleep
 import os
 import multiprocessing as mp
@@ -80,7 +80,7 @@ class Processor:
         )
         self.client_processes[client.phone]['lisener_thread'].start()
         self.vprint(client.phone, 'запущен новый процесс')
-        client.last_launched = datetime.now()
+        client.last_launched = datetime.now(tz=timezone.utc)
         client.save()
 
     # Добавление нового клиента в список
