@@ -389,15 +389,15 @@ class MyTelegram(Telegram):
         self.code = None
         return self._send_data(data, result_id='updateAuthorizationState')
 
-    # def _send_password(self) -> AsyncResult:
-    #     self.password_required = True
-    #     logger.info('Sending password')
-    #     while self.password is None:
-    #         sleep(0.01)
-    #     # password = getpass.getpass('Password:')
-    #     data = {'@type': 'checkAuthenticationPassword', 'password': self.password}
-    #     self.password = None
-    #     return self._send_data(data, result_id='updateAuthorizationState')
+    def _send_password(self) -> AsyncResult:
+        self.password_required = True
+        logger.info('Sending password')
+        while self.password is None:
+            sleep(0.01)
+        # password = getpass.getpass('Password:')
+        data = {'@type': 'checkAuthenticationPassword', 'password': self.password}
+        self.password = None
+        return self._send_data(data, result_id='updateAuthorizationState')
 
     # def _run_handlers(self, update: Dict[Any, Any]) -> None:
     #     update_type: str = update.get('@type', 'unknown')

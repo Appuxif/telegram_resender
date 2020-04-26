@@ -90,7 +90,7 @@ class Processor:
             self.clients.append(client)
 
     # Остановка клиента
-    def stop_client(self, client):
+    def stop_client(self, client, status='stopped'):
         self.vprint(client.phone, 'остановка клиента')
         # Убираем клиента из списка
         if client in self.clients:
@@ -104,7 +104,7 @@ class Processor:
             client_process = self.client_processes.pop(client.phone)
             client_process['process'].terminate()
             self.vprint(client.phone, 'stop_client процесс клиента остановлен')
-            client.status = 'stopped'
+            client.status = status
             client.save()
         else:
             self.vprint(client.phone, 'stop_client процесс клиента не найден')
