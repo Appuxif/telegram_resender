@@ -36,9 +36,9 @@ class TelegramClientAdmin(admin.ModelAdmin):
         return super(TelegramClientAdmin, self).delete_model(request, obj)
 
     def save_related(self, request, form, formsets, change):
-        print('in save_related')
+        # print('in save_related')
         # print(form.instance)
-        # print(formsets)
+        print(formsets)
         # print(dir(formsets[0]))
         # for formset in formsets:
         #     print(formset.forms)

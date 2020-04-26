@@ -34,7 +34,11 @@ class Processor:
             # print(self.clients)
             # print(self.client_processes)
             for client in self.clients:
-                self.process_client(client)
+                try:
+                    self.process_client(client)
+                except Exception:
+                    traceback.print_exc(file=sys.stdout)
+                    print('bot_processor Ошибка клиента', client)
             sleep(10)
 
     # Обработка клиентов. Запуск и перезапуск
