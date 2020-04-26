@@ -67,8 +67,10 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
                         'client.save();')
     django.setup()
 
-    from interface.models import ChannelTunnel, TelegramClient
+    from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
     tg.ChannelTunnel = ChannelTunnel
+    tg.Message = TelegramMessage
+
     tg.client = TelegramClient.objects.get(phone=tg.phone)
     # Загрузка каналов в список tg.channels
     tg.channels = {}
@@ -78,26 +80,20 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
 
 # Обработчик всех входящих сообщений
 def message_handler(update):
-    print('message_handler', update)
+    print('message_handler', update, '\n')
     msg = Message(update, tg)
     print(f'{tg.phone} {msg.chat.title}:{msg.chat.username}:{msg.from_user.first_name} '
-          f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}')
+          f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}\n')
 
     msg_chat_id = str(msg.chat.id)
     # Проверка канала в списке
     if msg_chat_id not in tg.channels:
         # Если канала в списке нет, до добавляем его в БД и список
-        print('Новый канал!')
-        tg.channels[msg_chat_id] = {'to_id': None, 'active': False}
-        new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg_chat_id, from_name=msg.chat.title)
-        new_channel.save()
+        add_new_channel_to_db(msg)
 
-    elif tg.channels[msg_chat_id]['active'] and tg.channels[msg_chat_id]['to_id']:
+    elif tg.channels[msg_chat_id].active and tg.channels[msg_chat_id].to_id:
         # Если канал есть в списке и требуется пересылка, то производим пересылку сообщения в другой канал
-        mes = tg.send_message(tg.channels[msg_chat_id]['to_id'], msg.text)
-        mes.wait(timeout=5)
-        print(mes.update)
-        # Сохранение сообщения в БД
+        resend_message(msg)
 
 
 # Обработчик остальных обновлений
@@ -126,9 +122,45 @@ def updateauthorizationstate_handler(update):
 
 
 def load_channels():
-    tg.channels = {channel.from_id: {'to_id': channel.to_id, 'active': channel.active}
+    tg.channels = {channel.from_id: channel
                    for channel in tg.ChannelTunnel.objects.filter(client=tg.client)}
-    print(tg.phone, 'Список каналов загружен\n', tg.channels)
+    print(tg.phone, 'Список каналов загружен\n', tg.channels, '\n')
+
+
+def add_new_channel_to_db(msg):
+    print('Новый канал!\n')
+    msg_chat_id = str(msg.chat.id)
+    new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg_chat_id, from_name=msg.chat.title)
+    new_channel.save()
+    tg.channels[msg_chat_id] = new_channel
+
+
+def resend_message(msg):
+    # Проверяем наличие реплая
+    print('msg.reply_to_message', msg.reply_to_message, '\n')
+    msg_chat_id = str(msg.chat.id)
+    reply_to_message_id = 0
+    # Если есть реплай, то нужно достать из БД ID копии сообщения этого реплая
+    if msg.reply_to_message:
+        from_message_id = msg.reply_to_message.message_id
+        message_from_db = tg.TelegramMessage.objects.filter(channel=tg.channels[msg_chat_id],
+                                                            from_message_id=from_message_id).first()
+        print('message_from_db', message_from_db, '\n')
+        if message_from_db:
+            reply_to_message_id = message_from_db.to_message_id
+
+    # Отправка копии сообщения во второй канал
+    mes = tg.send_message(tg.channels[msg_chat_id].to_id, msg.text, reply_to_message_id=reply_to_message_id)
+    mes.wait(timeout=5)
+    print(mes.update, '\n')
+
+    # Сохраняем связку ID сообщений для последующей возможности реплая
+    if mes.update:
+        msg2 = Message({'message': mes.update}, tg)
+        new_message = tg.TelegramMessage(channel=tg.channels[msg_chat_id],
+                                         from_message_id=msg.message_id,
+                                         to_message_id=msg2.message_id)
+        new_message.save()
 
 # TODO: Обработчик закрытой сессии
 #  Отправлять статус о закрытой сессии. Отключать клиента.
