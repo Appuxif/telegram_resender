@@ -95,6 +95,7 @@ def message_handler(update):
     elif tg.channels[msg_chat_id]['active'] and tg.channels[msg_chat_id]['to_id']:
         # Если канал есть в списке и требуется пересылка, то производим пересылку сообщения в другой канал
         mes = tg.send_message(tg.channels[msg_chat_id]['to_id'], msg.text)
+        mes.wait(timeout=5)
         print(mes.update)
         # Сохранение сообщения в БД
 
