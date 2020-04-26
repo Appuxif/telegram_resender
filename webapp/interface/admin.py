@@ -1,13 +1,16 @@
 import threading
 
 import sys
+import traceback
+
 from django.contrib import admin
 from .models import TelegramClient, ChannelTunnel, Message
+from multiprocessing.connection import Client
 # from .apps import processor
 
 from bot_processor import Processor
 
-processor = None
+# processor = None
 
 
 class ChannelTunnelInline(admin.StackedInline):
@@ -49,29 +52,50 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
-        if processor:
-            processor.stop_client(obj)
+        try:
+            with Client('unix:/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as conn:
+                conn.send(f'self.stop_client("{obj.phone}")')
+        except:
+            print('delete_model Ошибка подключения')
+            traceback.print_exc(file=sys.stdout)
+        # if processor:
+        #     processor.stop_client(obj)
         return super(TelegramClientAdmin, self).delete_model(request, obj)
 
     def save_related(self, request, form, formsets, change):
         super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
-        if processor:
-            processor.reload_client_channels(form.instance)
+        try:
+            with Client('unix:/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as conn:
+                conn.send(f'self.reload_client_channels("{form.instance.phone}")')
+        except:
+            print('save_related Ошибка подключения')
+            traceback.print_exc(file=sys.stdout)
+        # if processor:
+        #     processor.reload_client_channels(form.instance)
 
     def save_model(self, request, obj, form, change):
-        if processor:
-            if obj.active:
-                processor.add_client(obj)
-            else:
-                processor.stop_client(obj)
+        try:
+            with Client('unix:/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as conn:
+            # if processor:
+                if obj.active:
+                    # processor.add_client(obj)
+                    conn.send(f'self.load_clients()')
+                else:
+                    conn.send(f'self.stop_client("{obj.phone}")')
+                    # processor.stop_client(obj)
 
-            if obj.code:
-                print(obj.code)
-                processor.send_code_to_client(obj)
+                if obj.code:
+                    print(obj.code)
+                    conn.send(f'self.send_code_to_client("{obj.phone}", "{obj.code}")')
+                    # processor.send_code_to_client(obj)
 
-            if obj.password:
-                print(obj.password)
-                processor.send_password_to_client(obj)
+                if obj.password:
+                    print(obj.password)
+                    conn.send(f'self.send_code_to_client("{obj.phone}", "{obj.password}")')
+                    # processor.send_password_to_client(obj)
+        except:
+            print('save_model Ошибка подключения')
+            traceback.print_exc(file=sys.stdout)
 
         obj.code = None
         obj.password = None
@@ -91,10 +115,10 @@ class ChannelTunnelAdmin(admin.ModelAdmin):
 #     list_display_links = None
 
 
-print(sys.argv)
-if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' in sys.argv or
-        'manage.py' not in sys.argv):
-    clients = [client for client in TelegramClient.objects.all() if client.active]
-    processor = Processor(clients=clients)
-    t = threading.Thread(target=processor.go_processor, daemon=True)
-    t.start()
+# print(sys.argv)
+# if ('manage.py' in sys.argv and 'runserver' in sys.argv and '--noreload' in sys.argv or
+#         'manage.py' not in sys.argv):
+#     clients = [client for client in TelegramClient.objects.all() if client.active]
+#     processor = Processor(clients=clients)
+#     t = threading.Thread(target=processor.go_processor, daemon=True)
+#     t.start()

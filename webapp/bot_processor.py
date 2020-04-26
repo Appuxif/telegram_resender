@@ -17,10 +17,13 @@ from bot import start_bot
 class Processor:
     client_processes = {}
 
-    def __init__(self, clients, verbose=True):
+    def __init__(self, verbose=True):
         from interface.models import TelegramClient
         self.TelegramClient = TelegramClient
-        self.clients = list(clients)
+        django.db.close_old_connections()
+        self.load_clients()
+        # self.clients = {client.phone: {'client': client} for client in TelegramClient.objects.all() if client.active}
+        # self.clients = list(clients)
         self.verbose = verbose
         self.vprint('Запущен процессор')
 
@@ -33,7 +36,8 @@ class Processor:
         while True:
             # print(self.clients)
             # print(self.client_processes)
-            for client in self.clients:
+            for client_phone in self.clients:
+                client = self.clients[client_phone]
                 try:
                     self.process_client(client)
                 except Exception:
@@ -80,44 +84,54 @@ class Processor:
         )
         self.client_processes[client.phone]['process'].start()
 
-        self.client_processes[client.phone]['lisener_thread'] = threading.Thread(
+        self.client_processes[client.phone]['listener_thread'] = threading.Thread(
             target=self.child_listener,
             args=(client, r1),
             daemon=True
         )
-        self.client_processes[client.phone]['lisener_thread'].start()
+        self.client_processes[client.phone]['listener_thread'].start()
         self.vprint(client.phone, 'запущен новый процесс')
         client.last_launched = datetime.now(tz=timezone.utc)
         client.save()
 
+    def load_clients(self):
+        self.clients = {client.phone: {'client': client}
+                        for client in self.TelegramClient.objects.all() if client.active}
+
     # Добавление нового клиента в список
-    def add_client(self, client):
-        if client not in self.clients:
+    def add_client(self, client_phone):
+        client = self.TelegramClient.objects.get(phone=client_phone)
+        if client.phone not in self.clients:
             self.vprint('Добавлен новый клиент в список', client)
-            self.clients.append(client)
+            # self.clients.append(client)
+            self.clients[client.phone] = {'client': client}
 
     # Остановка клиента
-    def stop_client(self, client, status='stopped'):
-        self.vprint(client.phone, 'остановка клиента')
+    def stop_client(self, client_phone, status='stopped'):
+        self.vprint(client_phone, 'остановка клиента')
         # Убираем клиента из списка
-        if client in self.clients:
-            self.clients.remove(client)
-            self.vprint(client.phone, 'stop_client клиент удален из списка клиентов')
+        if client_phone in self.clients:
+            # self.clients.remove(client)
+            self.clients.pop(client_phone)
+            self.vprint(client_phone, 'stop_client клиент удален из списка клиентов')
         else:
-            self.vprint(client.phone, 'stop_client клиент не найден в списке клиентов')
+            self.vprint(client_phone, 'stop_client клиент не найден в списке клиентов')
 
         # Убиваем процесс
-        if client.phone in self.client_processes:
+        if client_phone in self.client_processes:
             django.db.close_old_connections()
-            client_process = self.client_processes.pop(client.phone)
+            client_process = self.client_processes.pop(client_phone)
             client_process['process'].terminate()
-            client_process['lisener_thread'].join()
+            client_process['listener_thread'].join()
+
+            client = self.TelegramClient.objects.get(phone=client_phone)
             client.status = status
             client.active = False
             client.save()
-            self.vprint(client.phone, 'stop_client процесс клиента остановлен')
+
+            self.vprint(client_phone, 'stop_client процесс клиента остановлен')
         else:
-            self.vprint(client.phone, 'stop_client процесс клиента не найден')
+            self.vprint(client_phone, 'stop_client процесс клиента не найден')
 
     # Перезапуск процесса клиента
     def reload_client(self, client):
@@ -132,36 +146,36 @@ class Processor:
             self.vprint(client.phone, 'reload_client процесс клиента не найден')
 
     # Обновляет список каналов у клиента
-    def reload_client_channels(self, client):
-        client_process = self.client_processes.get(client.phone)
+    def reload_client_channels(self, client_phone):
+        client_process = self.client_processes.get(client_phone)
         if client_process:
             client_process['send_to_child'].send(
                 'load_channels(5);'
             )
         else:
-            self.vprint(client.phone, 'reload_client_channels процесс клиента не найден')
+            self.vprint(client_phone, 'reload_client_channels процесс клиента не найден')
 
     # Отправка кода авторизации клиенту
-    def send_code_to_client(self, client):
-        if client.code:
-            if client.phone in self.client_processes:
-                self.client_processes[client.phone]['send_to_child'].send(f'tg.code = "{client.code}"')
-                self.vprint(client.phone, 'отправлен код авторизации', client.code)
+    def send_code_to_client(self, client_phone, client_code):
+        if client_code:
+            if client_phone in self.client_processes:
+                self.client_processes[client_phone]['send_to_child'].send(f'tg.code = "{client_code}"')
+                self.vprint(client_phone, 'отправлен код авторизации', client_code)
             else:
-                self.vprint(client.phone, 'send_code_to_client процесс клиента не найден')
+                self.vprint(client_phone, 'send_code_to_client процесс клиента не найден')
         else:
-            self.vprint(client.phone, 'вызван send_code_to_client но код не получен')
+            self.vprint(client_phone, 'вызван send_code_to_client но код не получен')
 
     # Отправка пароля аутентификации клиенту
-    def send_password_to_client(self, client):
-        if client.password:
-            if client.phone in self.client_processes:
-                self.client_processes[client.phone]['send_to_child'].send(f'tg.password = "{client.password}"')
-                self.vprint(client.phone, 'отправлен пароль аутентификации', client.password)
+    def send_password_to_client(self, client_phone, client_password):
+        if client_password:
+            if client_phone in self.client_processes:
+                self.client_processes[client_phone]['send_to_child'].send(f'tg.password = "{client_password}"')
+                self.vprint(client_phone, 'отправлен пароль аутентификации', client_password)
             else:
-                self.vprint(client.phone, 'send_password_to_client процесс клиента не найден')
+                self.vprint(client_phone, 'send_password_to_client процесс клиента не найден')
         else:
-            self.vprint(client.phone, 'вызван send_password_to_client но пароль не получен')
+            self.vprint(client_phone, 'вызван send_password_to_client но пароль не получен')
 
     # Слушает сообщение от дочернего процесса. Получает имя изображения, отправляет его в ТГ
     def child_listener(self, client, conn):
@@ -174,3 +188,22 @@ class Processor:
             except Exception as err:
                 traceback.print_exc(file=sys.stdout)
                 print('Ошибка от дочернего')
+
+    # В этом потоке будут слушаться запросы от сервера
+    def listener_thread(self):
+        with mp.connection.Listener('unix:/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as listener:
+            with listener.accept() as conn:
+                while True:
+                    try:
+                        exec(conn.recv())
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        return
+                    except Exception as err:
+                        traceback.print_exc(file=sys.stdout)
+                        print('Ошибка листенера')
+
+
+if __name__ == '__main__':
+    processor = Processor()
+    processor.go_processor()
