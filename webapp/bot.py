@@ -79,7 +79,7 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # tg.add_update_handler('updateUser', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_user.html
     tg.add_update_handler('updateChatIsMarkedAsUnread', updateChatIsMarkedAsUnread_handler)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_chat_is_marked_as_unread.html
 
-    django.setup()
+    # django.setup()
     django.db.close_old_connections()
 
     from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage

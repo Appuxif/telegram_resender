@@ -9,7 +9,7 @@ import sys
 
 from bot import start_bot
 
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
 # django.setup()
 
 
@@ -18,6 +18,7 @@ class Processor:
     client_processes = {}
 
     def __init__(self, verbose=True):
+        django.setup()
         from interface.models import TelegramClient
         self.TelegramClient = TelegramClient
         django.db.close_old_connections()
