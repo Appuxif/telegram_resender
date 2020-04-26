@@ -65,6 +65,7 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # tg.add_update_handler('updateDeleteMessages', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_delete_messages.html
     # tg.add_update_handler('updateNewChat', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_new_chat.html
     # tg.add_update_handler('updateUser', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_user.html
+    tg.add_update_handler('updateChatIsMarkedAsUnread', updateChatIsMarkedAsUnread_handler)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_chat_is_marked_as_unread.html
 
     tg.parent_conn.send('client.status = "started";'
                         f'client.user_id = "{tg.me.id}";'
@@ -134,6 +135,10 @@ def updateauthorizationstate_handler(update):
         tg.parent_conn.send(
             'self.stop_client(client, "session closed");'
         )
+
+
+def updateChatIsMarkedAsUnread_handler(update):
+    print(update)
 
 
 def load_channels(sleep_time=0):

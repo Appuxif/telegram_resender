@@ -22,41 +22,43 @@ class ChannelTunnelInline(admin.StackedInline):
 class TelegramClientAdmin(admin.ModelAdmin):
     list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created')
     fieldsets = (
-        ('Login codes', {'fields': ('active', 'code', 'password')}),
+        ('Login codes', {'fields': ('active', 'code', 'password'), 'description': 'Вводить только по требованию'}),
         ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
         ('User Info', {'fields': ('username', 'user_id', 'status')}),
     )
+    readonly_fields = ('phone', 'api_id', 'api_hash', 'username', 'user_id', 'status')
     inlines = (ChannelTunnelInline,)
-    search_fields = ('from_name', 'from_id')
+
+    def get_fieldsets(self, request, obj=None):
+        if request.path == '/admin/interface/telegramclient/add/':
+            return (
+                ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
+            )
+        return super(TelegramClientAdmin, self).get_fieldsets(request, obj)
+
+    def get_inlines(self, request, obj):
+        if request.path == '/admin/interface/telegramclient/add/':
+            return ()
+        return super(TelegramClientAdmin, self).get_inlines(request, obj)
+
+    def get_readonly_fields(self, request, obj=None):
+        if request.path == '/admin/interface/telegramclient/add/':
+            return []
+        return super(TelegramClientAdmin, self).get_readonly_fields(request, obj)
 
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
-        # processor = apps.processor
         if processor:
             processor.stop_client(obj)
         return super(TelegramClientAdmin, self).delete_model(request, obj)
 
     def save_related(self, request, form, formsets, change):
-        # print('in save_related')
-        # print(form.instance)
-        print(formsets)
-        # print(dir(formsets[0]))
-        # for formset in formsets:
-        #     print(formset.forms)
-        #     print(formset.queryset)
-        #     print(formset.instance)
         super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
         if processor:
             processor.reload_client_channels(form.instance)
-        # if processor:
-        #     processor.reload_client()
-        # return super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
 
     def save_model(self, request, obj, form, change):
-        # processor = apps.processor
-        # При создании нового клиента объект этого клиента надо добавить в processor
         if processor:
-            # print(processor.clients)
             if obj.active:
                 processor.add_client(obj)
             else:
@@ -78,7 +80,8 @@ class TelegramClientAdmin(admin.ModelAdmin):
 # TODO: Для отладки. Потом убрать
 @admin.register(ChannelTunnel)
 class ChannelTunnelAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('__str__', 'client', 'from_id', 'to_id', 'active')
+    search_fields = ('from_name', 'from_id')
 
 
 @admin.register(Message)
