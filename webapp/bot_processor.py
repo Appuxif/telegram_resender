@@ -135,7 +135,7 @@ class Processor:
     def send_code_to_client(self, client):
         if client.code:
             if client.phone in self.client_processes:
-                self.client_processes[client.phone]['parent_conn'].send(f'tg.code = {client.code}')
+                self.client_processes[client.phone]['send_to_child'].send(f'tg.code = {client.code}')
                 self.vprint(client.phone, 'отправлен код авторизации', client.code)
             else:
                 self.vprint(client.phone, 'send_code_to_client процесс клиента не найден')
@@ -146,7 +146,7 @@ class Processor:
     def send_password_to_client(self, client):
         if client.password:
             if client.phone in self.client_processes:
-                self.client_processes[client.phone]['parent_conn'].send(f'tg.password = {client.password}')
+                self.client_processes[client.phone]['send_to_child'].send(f'tg.password = {client.password}')
                 self.vprint(client.phone, 'отправлен пароль аутентификации', client.password)
             else:
                 self.vprint(client.phone, 'send_password_to_client процесс клиента не найден')

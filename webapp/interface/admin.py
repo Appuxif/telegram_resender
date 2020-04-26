@@ -14,6 +14,7 @@ class ChannelTunnelInline(admin.StackedInline):
     model = ChannelTunnel
     extra = 0
     ordering = ('-to_id', )
+    readonly_fields = ('from_id', )
     # exclude = ('client', )
 
 
