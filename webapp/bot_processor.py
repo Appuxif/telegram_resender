@@ -197,10 +197,7 @@ class Processor:
     def listener_thread(self):
         print('Запуск листенера')
         # with mp.connection.Listener('/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as listener:
-        with mp.connection.Listener(r'\.\pipePIPENAME', family='AF_UNIX', authkey=b'asd') as listener:
-
-            conn = listener.accept()
-            print('connection accepted from', listener.last_accepted)
+        with mp.connection.Listener('/var/www/telegram_resender/proc.sock', family='AF_UNIX', authkey=b'asd') as listener:
             with listener.accept() as conn:
                 print('connection accepted from', listener.last_accepted)
                 # while True:
