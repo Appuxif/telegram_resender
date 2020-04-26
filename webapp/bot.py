@@ -68,7 +68,7 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
                         f'client.username = "{tg.me.username}";'
                         'client.save();')
     # django.setup()
-    # django.db.close_old_connections()
+    django.db.close_old_connections()
 
     from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
     tg.ChannelTunnel = ChannelTunnel
