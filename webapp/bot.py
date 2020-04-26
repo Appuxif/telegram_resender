@@ -234,6 +234,8 @@ def resend_photo(update, msg):
     photo = content.get('photo', {}).get('sizes', [])
     if photo:
         photo_id = photo[-1]['photo']['remote']['id']
+        print('photo_id', photo_id)
+
         caption = content.get('caption', {})
         return tg.call_method('sendMessage', {
             'chat_id': tg.channels[msg_chat_id].to_id,
@@ -256,6 +258,7 @@ def resend_document(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     document_id = content.get('document', {}).get('document', {}).get('remote', {}).get('id')
+    print('document_id', document_id)
 
     if document_id:
         caption = content.get('caption', {})
