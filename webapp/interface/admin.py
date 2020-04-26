@@ -22,9 +22,10 @@ class ChannelTunnelInline(admin.StackedInline):
 class TelegramClientAdmin(admin.ModelAdmin):
     list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created')
     fieldsets = (
-        ('Login codes', {'fields': ('active', 'code', 'password'), 'description': 'Вводить только по требованию'}),
+        ('Login codes', {'fields': ('active', 'status', 'code', 'password'),
+                         'description': 'Вводить только по требованию'}),
         ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
-        ('User Info', {'fields': ('username', 'user_id', 'status')}),
+        ('User Info', {'fields': ('username', 'user_id')}),
     )
     readonly_fields = ('phone', 'api_id', 'api_hash', 'username', 'user_id', 'status')
     inlines = (ChannelTunnelInline,)

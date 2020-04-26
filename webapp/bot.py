@@ -1,6 +1,6 @@
 import threading
 import traceback
-from time import sleep
+from time import sleep, monotonic
 
 import django
 import os
@@ -14,6 +14,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
 
 # В этой переменной будет объект телеграма
 tg = None
+
+
+def status_polling():
+    # timer = monotonic()
+    timer = -61
+    while True:
+        if monotonic() - timer > 60:
+            timer = monotonic()
+            tg.parent_conn.send('client.status = "working";'
+                                'client.save();')
+        sleep(10)
 
 
 # Слушает сообщение от родительского процесса. Передает код авторизации
@@ -58,8 +69,8 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.do_get_me()
     tg.add_message_handler(message_handler)
 
-    tg.add_update_handler('updateMessageContent', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_content.html
-    tg.add_update_handler('updateMessageEdited', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_edited.html
+    # tg.add_update_handler('updateMessageContent', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_content.html
+    # tg.add_update_handler('updateMessageEdited', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_edited.html
     tg.add_update_handler('updateMessageSendAcknowledged', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_send_acknowledged.html
     tg.add_update_handler('updateMessageSendFailed', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_send_failed.html
     # tg.add_update_handler('updateDeleteMessages', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_delete_messages.html
@@ -67,21 +78,23 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # tg.add_update_handler('updateUser', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_user.html
     tg.add_update_handler('updateChatIsMarkedAsUnread', updateChatIsMarkedAsUnread_handler)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_chat_is_marked_as_unread.html
 
-    tg.parent_conn.send('client.status = "started";'
-                        f'client.user_id = "{tg.me.id}";'
-                        f'client.username = "{tg.me.username}";'
-                        'client.save();')
     # django.setup()
     django.db.close_old_connections()
 
     from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
     tg.ChannelTunnel = ChannelTunnel
     tg.TelegramMessage = TelegramMessage
-
     tg.client = TelegramClient.objects.get(phone=tg.phone)
+
     # Загрузка каналов в список tg.channels
     tg.channels = {}
     load_channels()
+
+    tg.parent_conn.send('client.status = "working";'
+                        f'client.user_id = "{tg.me.id}";'
+                        f'client.username = "{tg.me.username}";'
+                        'client.save();')
+    threading.Thread(target=status_polling, daemon=True).start()
 
     tg.idle()
 
