@@ -194,6 +194,7 @@ class MyTelegram(Telegram):
         'messageAnimation': 'animation',
         'messageAudio': 'audio',
         'messagePhoto': 'photo',
+        'messageVideo': 'video',
         'messageDocument': 'document',
         'messageBasicGroupChatCreate': 'group_chat_created',
         'messageContact': 'contact',

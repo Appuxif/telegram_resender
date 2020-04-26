@@ -174,6 +174,8 @@ def resend_message(update, msg):
     elif msg.content_type == 'document':
         mes = resend_document(update, msg)
 
+    elif msg.content_type == 'video':
+        mes = resend_video(update, msg)
     else:
         mes = None
 
@@ -275,6 +277,32 @@ def resend_document(update, msg):
             }
         })
     return None
+
+
+# Переотправляет видео
+def resend_video(update, msg):
+    msg_chat_id = str(msg.chat.id)
+    message = update.get('message', {})
+    content = message.get('content', {})
+    video_id = content.get('video', {}).get('video', {}).get('remote', {}).get('id')
+    print('video_id', video_id)
+
+    if video_id:
+        caption = content.get('caption', {})
+        return tg.call_method('sendMessage', {
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': {
+                "@type": 'inputMessageVideo',
+                'video': {
+                    '@type': 'inputFileRemote',
+                    'id': video_id
+                },
+                'caption': caption
+            }
+        })
+    return None
+
 
 # TODO: Обработчик закрытой сессии
 #  Отправлять статус о закрытой сессии. Отключать клиента.
