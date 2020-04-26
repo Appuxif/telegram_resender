@@ -18,7 +18,7 @@ def parent_listener(conn):
         try:
             exec(conn.recv())
         except EOFError:
-            print('Канал закрылся')
+            print(tg.phone, 'Канал закрылся')
             return
         except Exception as err:
             print('Ошибка от родителя')
@@ -124,6 +124,8 @@ def updateauthorizationstate_handler(update):
 
 
 def load_channels(sleep_time=0):
+    if tg is None:
+        return
     if sleep_time:
         sleep(sleep_time)
     tg.channels = {channel.from_id: channel
