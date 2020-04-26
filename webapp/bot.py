@@ -308,8 +308,8 @@ def resend_sticker(update, msg):
             'chat_id': tg.channels[msg_chat_id].to_id,
             'reply_to_message_id': get_reply_to_message_id(msg),
             'input_message_content': {
-                "@type": 'inputMessageVideo',
-                'video': {
+                "@type": 'inputMessageSticker',
+                'sticker': {
                     '@type': 'inputFileRemote',
                     'id': sticker_id
                 },
