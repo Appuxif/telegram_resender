@@ -196,7 +196,7 @@ class Processor:
     # В этом потоке будут слушаться запросы от сервера
     def listener_thread(self):
         print('Запуск листенера')
-        with mp.connection.Listener(('localhost', 65535)) as listener:
+        with mp.connection.Listener('/home/ubuntu/telegram_resender/webapp/processor.sock') as listener:
             with listener.accept() as conn:
                 print('connection accepted from', listener.last_accepted)
                 # while True:
