@@ -21,10 +21,9 @@ class ChannelTunnelInline(admin.StackedInline):
 class TelegramClientAdmin(admin.ModelAdmin):
     list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created')
     fieldsets = (
-        ('Login codes', {'fields': ('code', 'password')}),
+        ('Login codes', {'fields': ('active', 'code', 'password')}),
         ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
         ('User Info', {'fields': ('username', 'user_id', 'status')}),
-        (None, {'fields': ('active',)}),
     )
     inlines = (ChannelTunnelInline,)
 
@@ -37,13 +36,13 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     def save_related(self, request, form, formsets, change):
         print('in save_related')
-        print(form.instance)
-        print(formsets)
-        print(dir(formsets[0]))
-        for formset in formsets:
-            print(formset.forms)
-            print(formset.queryset)
-            print(formset.instance)
+        # print(form.instance)
+        # print(formsets)
+        # print(dir(formsets[0]))
+        # for formset in formsets:
+        #     print(formset.forms)
+        #     print(formset.queryset)
+        #     print(formset.instance)
         super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
         if processor:
             processor.reload_client_channels(form.instance)

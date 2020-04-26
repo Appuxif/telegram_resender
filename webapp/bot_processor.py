@@ -126,7 +126,7 @@ class Processor:
         client_process = self.client_processes.get(client.phone)
         if client_process:
             client_process['send_to_child'].send(
-                'load_channels();'
+                'load_channels(5);'
             )
         else:
             self.vprint(client.phone, 'reload_client_channels процесс клиента не найден')

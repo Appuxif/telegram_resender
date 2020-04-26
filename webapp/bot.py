@@ -1,4 +1,6 @@
 import threading
+from time import sleep
+
 import django
 import os
 from mytelegram import MyTelegram, Message
@@ -121,7 +123,9 @@ def updateauthorizationstate_handler(update):
         )
 
 
-def load_channels():
+def load_channels(sleep_time=0):
+    if sleep_time:
+        sleep(sleep_time)
     tg.channels = {channel.from_id: channel
                    for channel in tg.ChannelTunnel.objects.filter(client=tg.client)}
     print(tg.phone, 'Список каналов загружен')
