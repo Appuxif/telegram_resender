@@ -300,7 +300,7 @@ class MyTelegram(Telegram):
         if parse_mode:
             formatted_text = self.parse_text_entities(text, parse_mode) or formatted_text
 
-        self.call_method('sendMessage', {
+        return self.call_method('sendMessage', {
             'chat_id': chat_id,
             'reply_to_message_id': reply_to_message_id,
             'input_message_content': {
@@ -319,10 +319,14 @@ class MyTelegram(Telegram):
         else:
             splitted_text.append(text)
 
-        for text in splitted_text:
-            self.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode,
-                              disable_web_page_preview=disable_web_page_preview,
-                              reply_to_message_id=reply_to_message_id)
+        return [self.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode,
+                                  disable_web_page_preview=disable_web_page_preview,
+                                  reply_to_message_id=reply_to_message_id)
+                for text in splitted_text]
+        # for text in splitted_text:
+        #     self.send_message(chat_id=chat_id, text=text, parse_mode=parse_mode,
+        #                       disable_web_page_preview=disable_web_page_preview,
+        #                       reply_to_message_id=reply_to_message_id)
 
     def delete_message(self, chat_id, message_id):
         self.call_method('deleteMessages', {'chat_id': chat_id, 'message_ids': [message_id], 'revoke': True})
