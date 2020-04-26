@@ -49,7 +49,7 @@ class Processor:
         # Если процесс не запущен, то запускем
         if client.phone not in self.client_processes:
             self.start_new_client(client)
-            sleep(2)
+            # sleep(2)
 
     # Проверяет состояние запущенного процесса клиента
     def check_client(self, client):

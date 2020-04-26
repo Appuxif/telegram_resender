@@ -1,8 +1,12 @@
 import threading
+import traceback
 from time import sleep
 
 import django
 import os
+
+import sys
+
 from mytelegram import MyTelegram, Message
 
 
@@ -52,7 +56,6 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
 
     tg.login()
     tg.do_get_me()
-    tg.send_message(tg.me.id, 'Запустился')
     tg.add_message_handler(message_handler)
 
     tg.add_update_handler('updateMessageContent', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_content.html
@@ -78,12 +81,11 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # Загрузка каналов в список tg.channels
     tg.channels = {}
     load_channels()
+
     tg.idle()
 
 
-# Обработчик всех входящих сообщений
-def message_handler(update):
-    print('message_handler', update, '\n')
+def process_message_update(update):
     msg = Message(update, tg)
     print(f'{tg.phone} {msg.chat.title}:{msg.chat.username}:{msg.from_user.first_name} '
           f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}\n')
@@ -96,7 +98,17 @@ def message_handler(update):
 
     elif tg.channels[msg_chat_id].active and tg.channels[msg_chat_id].to_id:
         # Если канал есть в списке и требуется пересылка, то производим пересылку сообщения в другой канал
-        resend_message(msg)
+        resend_message(update, msg)
+
+
+# Обработчик всех входящих сообщений
+def message_handler(update):
+    print('message_handler', update, '\n')
+    try:
+        process_message_update(update)
+    except Exception as err:
+        traceback.print_exc(file=sys.stdout)
+        print(tg.phone, 'Ошибка с обновлением\n', update)
 
 
 # Обработчик остальных обновлений
@@ -147,22 +159,18 @@ def add_new_channel_to_db(msg):
     tg.channels[msg_chat_id] = new_channel
 
 
-def resend_message(msg):
+def resend_message(update, msg):
     # Проверяем наличие реплая
     print('msg.reply_to_message', msg.reply_to_message, '\n')
     msg_chat_id = str(msg.chat.id)
-    reply_to_message_id = 0
-    # Если есть реплай, то нужно достать из БД ID копии сообщения этого реплая
-    if msg.reply_to_message:
-        from_message_id = msg.reply_to_message.message_id
-        message_from_db = tg.TelegramMessage.objects.filter(channel=tg.channels[msg_chat_id],
-                                                            from_message_id=from_message_id).first()
-        print('message_from_db', message_from_db, '\n')
-        if message_from_db:
-            reply_to_message_id = message_from_db.to_message_id
 
     # Отправка копии сообщения во второй канал
-    mes = tg.send_message(tg.channels[msg_chat_id].to_id, msg.text, reply_to_message_id=reply_to_message_id)
+    if msg.content_type == 'text':
+        mes = resend_text(update, msg)
+
+    elif msg.content_type == 'photo':
+        mes = resend_photo(update, msg)
+
     mes.wait(timeout=5)
     print(mes.update, '\n')
 
@@ -173,6 +181,47 @@ def resend_message(msg):
                                          from_message_id=msg.message_id,
                                          to_message_id=msg2.message_id)
         new_message.save()
+
+
+# Переотправляет обычный текст
+def resend_text(update, msg):
+    message = update.get('message', {})
+    content = message.get('content', {})
+    text = content.get('text', {})
+
+    reply_to_message_id = 0
+    msg_chat_id = str(msg.chat.id)
+    # Если есть реплай, то нужно достать из БД ID копии сообщения этого реплая
+    if msg.reply_to_message:
+        from_message_id = msg.reply_to_message.message_id
+        message_from_db = tg.TelegramMessage.objects.filter(channel=tg.channels[msg_chat_id],
+                                                            from_message_id=from_message_id).first()
+        print('message_from_db', message_from_db, '\n')
+        if message_from_db:
+            reply_to_message_id = message_from_db.to_message_id
+
+    return tg.call_method('sendMessage', {
+            'chat_id': msg.chat.id,
+            'reply_to_message_id': reply_to_message_id,
+            'input_message_content': {
+                '@type': 'inputMessageText',
+                'text': text,
+                'disable_web_page_preview': True
+            }
+        })
+
+
+    # return tg.send_message(tg.channels[msg_chat_id].to_id, msg.text, reply_to_message_id=reply_to_message_id)
+
+
+# Переотправляет обычный фото
+def resend_photo(update, msg):
+    message = update.get('message', {})
+    content = message.get('content', {})
+
+    photo = content.get('photo', {})
+    caption = content.get('caption', {})
+
 
 # TODO: Обработчик закрытой сессии
 #  Отправлять статус о закрытой сессии. Отключать клиента.

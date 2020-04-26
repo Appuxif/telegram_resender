@@ -14,8 +14,8 @@ class ChannelTunnelInline(admin.StackedInline):
     model = ChannelTunnel
     extra = 0
     ordering = ('-to_id', )
-    readonly_fields = ('from_id', )
-    # exclude = ('client', )
+    readonly_fields = ('from_id', 'from_name')
+    fields = ('from_id', 'from_name', 'to_id', 'to_name', 'active')
 
 
 @admin.register(TelegramClient)
@@ -27,6 +27,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
         ('User Info', {'fields': ('username', 'user_id', 'status')}),
     )
     inlines = (ChannelTunnelInline,)
+    search_fields = ('from_name', 'from_id')
 
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
