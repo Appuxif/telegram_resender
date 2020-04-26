@@ -110,6 +110,7 @@ class Processor:
             client_process['process'].terminate()
             self.vprint(client.phone, 'stop_client процесс клиента остановлен')
             client.status = status
+            client.active = False
             client.save()
         else:
             self.vprint(client.phone, 'stop_client процесс клиента не найден')

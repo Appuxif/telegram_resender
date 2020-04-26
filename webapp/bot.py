@@ -135,12 +135,8 @@ def updateauthorizationstate_handler(update):
 
 # Добавляем чаты в БД по отметке "Не прочитанные"
 def updateChatIsMarkedAsUnread_handler(update):
-    print('updateChatIsMarkedAsUnread_handler', update)
-    chat_id = update.get('chat_id')
-    chat = Chat(chat_id, tg)
-    print(chat.id)
-    print(chat.title)
-    print(chat.username)
+    # print('updateChatIsMarkedAsUnread_handler', update)
+    chat = Chat(update.get('chat_id'), tg)
     msg_chat_id = str(chat.id)
     # Проверка канала в списке
     if msg_chat_id not in tg.channels:
