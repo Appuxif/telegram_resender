@@ -196,15 +196,15 @@ class Processor:
     def listener_thread(self):
         with mp.connection.Listener(('localhost', 60000), authkey=b'testauthkey') as listener:
             with listener.accept() as conn:
-                while True:
-                    try:
-                        exec(conn.recv())
-                    except KeyboardInterrupt:
-                        print('KeyboardInterrupt')
-                        return
-                    except Exception as err:
-                        traceback.print_exc(file=sys.stdout)
-                        print('Ошибка листенера')
+                # while True:
+                try:
+                    exec(conn.recv())
+                except KeyboardInterrupt:
+                    print('KeyboardInterrupt')
+                    return
+                except Exception as err:
+                    traceback.print_exc(file=sys.stdout)
+                    print('Ошибка листенера')
 
 
 if __name__ == '__main__':
