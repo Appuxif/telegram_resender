@@ -58,8 +58,8 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.add_update_handler('updateMessageSendAcknowledged', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_send_acknowledged.html
     tg.add_update_handler('updateMessageSendFailed', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_message_send_failed.html
     tg.add_update_handler('updateDeleteMessages', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_delete_messages.html
-    tg.add_update_handler('updateNewChat', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_new_chat.html
-    tg.add_update_handler('updateUser', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_user.html
+    # tg.add_update_handler('updateNewChat', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_new_chat.html
+    # tg.add_update_handler('updateUser', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_user.html
 
     tg.parent_conn.send('client.status = "started";'
                         f'client.user_id = "{tg.me.id}";'
@@ -83,16 +83,18 @@ def message_handler(update):
     print(f'{tg.phone} {msg.chat.title}:{msg.chat.username}:{msg.from_user.first_name} '
           f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}')
 
+    msg_chat_id = str(msg.chat.id)
     # Проверка канала в списке
-    if msg.chat.id not in tg.channels:
+    if msg_chat_id not in tg.channels:
         # Если канала в списке нет, до добавляем его в БД и список
         print('Новый канал!')
-        tg.channels[msg.chat.id] = {'to_id': None, 'active': False}
-        new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg.chat.id, from_name=msg.chat.title)
+        tg.channels[msg_chat_id] = {'to_id': None, 'active': False}
+        new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg_chat_id, from_name=msg.chat.title)
         new_channel.save()
-    elif tg.channels[msg.chat.id]['active'] and tg.channels[msg.chat.id]['to_id']:
+
+    elif tg.channels[msg_chat_id]['active'] and tg.channels[msg_chat_id]['to_id']:
         # Если канал есть в списке и требуется пересылка, то производим пересылку сообщения в другой канал
-        mes = tg.send_message(tg.channels[msg.chat.id]['to_id'], msg.text)
+        mes = tg.send_message(tg.channels[msg_chat_id]['to_id'], msg.text)
         print(mes.update)
         # Сохранение сообщения в БД
 
