@@ -172,7 +172,8 @@ def resend_message(update, msg):
         mes = resend_photo(update, msg)
 
     mes.wait(timeout=5)
-    print(mes.update, '\n')
+    print('mes.update', mes.update, '\n')
+    print('mes.error_info', mes.error_info, '\n')
 
     # Сохраняем связку ID сообщений для последующей возможности реплая
     if mes.update:
@@ -205,15 +206,21 @@ def resend_text(update, msg):
     content = message.get('content', {})
     text = content.get('text', {})
 
+    # return tg.call_method('sendMessage', {
+    #     'chat_id': tg.channels[msg_chat_id].to_id,
+    #     'reply_to_message_id': get_reply_to_message_id(msg),
+    #     'input_message_content': {
+    #         '@type': 'inputMessageText',
+    #         'text': text,
+    #         'disable_web_page_preview': True
+    #     }
+    # })
     return tg.call_method('sendMessage', {
-        'chat_id': tg.channels[msg_chat_id].to_id,
-        'reply_to_message_id': get_reply_to_message_id(msg),
-        'input_message_content': {
-            '@type': 'inputMessageText',
-            'text': text,
-            'disable_web_page_preview': True
-        }
-    })
+            'chat_id': tg.channels[msg_chat_id].to_id,
+            'reply_to_message_id': get_reply_to_message_id(msg),
+            'input_message_content': content
+        })
+
 
 
 # Переотправляет обычный фото
@@ -224,16 +231,20 @@ def resend_photo(update, msg):
 
     photo = content.get('photo', {})
     caption = content.get('caption', {})
-
     return tg.call_method('sendMessage', {
         'chat_id': tg.channels[msg_chat_id].to_id,
         'reply_to_message_id': get_reply_to_message_id(msg),
-        'input_message_content': {
-            "@type": 'inputMessagePhoto',
-            'photo': photo,
-            'caption': caption
-        }
+        'input_message_content': content
     })
+    # return tg.call_method('sendMessage', {
+    #     'chat_id': tg.channels[msg_chat_id].to_id,
+    #     'reply_to_message_id': get_reply_to_message_id(msg),
+    #     'input_message_content': {
+    #         "@type": 'inputMessagePhoto',
+    #         'photo': photo,
+    #         'caption': caption
+    #     }
+    # })
 
 
 
