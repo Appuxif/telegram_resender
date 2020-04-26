@@ -7,7 +7,7 @@ import os
 
 import sys
 
-from mytelegram import MyTelegram, Message
+from mytelegram import MyTelegram, Message, Chat
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'webapp.settings')
@@ -92,12 +92,8 @@ def process_message_update(update):
           f'[{msg.chat.id}:{msg.from_user.id}]: {msg.content_type}:\n{msg.text}\n')
 
     msg_chat_id = str(msg.chat.id)
-    # Проверка канала в списке
-    if msg_chat_id not in tg.channels:
-        # Если канала в списке нет, до добавляем его в БД и список
-        add_new_channel_to_db(msg)
 
-    elif tg.channels[msg_chat_id].active and tg.channels[msg_chat_id].to_id:
+    if msg_chat_id in tg.channels and tg.channels[msg_chat_id].active and tg.channels[msg_chat_id].to_id:
         # Если канал есть в списке и требуется пересылка, то производим пересылку сообщения в другой канал
         resend_message(update, msg)
 
@@ -137,8 +133,19 @@ def updateauthorizationstate_handler(update):
         )
 
 
+# Добавляем чаты в БД по отметке "Не прочитанные"
 def updateChatIsMarkedAsUnread_handler(update):
-    print(update)
+    print('updateChatIsMarkedAsUnread_handler', update)
+    chat_id = update.get('chat_id')
+    chat = Chat(chat_id, tg)
+    print(chat.id)
+    print(chat.title)
+    print(chat.username)
+    msg_chat_id = str(chat.id)
+    # Проверка канала в списке
+    if msg_chat_id not in tg.channels:
+        # Если канала в списке нет, до добавляем его в БД и список
+        add_new_channel_to_db(chat)
 
 
 def load_channels(sleep_time=0):
@@ -156,10 +163,10 @@ def load_channels(sleep_time=0):
     print()
 
 
-def add_new_channel_to_db(msg):
+def add_new_channel_to_db(chat):
     print('Новый канал!\n')
-    msg_chat_id = str(msg.chat.id)
-    new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg_chat_id, from_name=msg.chat.title)
+    msg_chat_id = str(chat.id)
+    new_channel = tg.ChannelTunnel(client=tg.client, from_id=msg_chat_id, from_name=chat.title)
     new_channel.save()
     tg.channels[msg_chat_id] = new_channel
 
