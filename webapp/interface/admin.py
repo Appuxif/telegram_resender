@@ -116,6 +116,7 @@ class ChannelTunnelAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'client', 'from_id', 'to_id', 'active')
     search_fields = ('from_name', 'from_id')
     list_display_links = None
+    actions = None
 
 
 # @admin.register(Message)
