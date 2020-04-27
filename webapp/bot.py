@@ -68,6 +68,14 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.parent_conn = parent_conn
     tg.add_update_handler('updateAuthorizationState', updateauthorizationstate_handler)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_authorization_state.html
 
+    # django.setup()
+    django.db.close_old_connections()
+
+    from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
+    tg.ChannelTunnel = ChannelTunnel
+    tg.TelegramMessage = TelegramMessage
+    tg.client = TelegramClient.objects.get(phone=tg.phone)
+
     tg.login()
     tg.do_get_me()
     tg.add_message_handler(message_handler)
@@ -80,14 +88,6 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # tg.add_update_handler('updateNewChat', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_new_chat.html
     # tg.add_update_handler('updateUser', another_update_hander)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_user.html
     tg.add_update_handler('updateChatIsMarkedAsUnread', updateChatIsMarkedAsUnread_handler)  # https://core.telegram.org/tdlib/docs/classtd_1_1td__api_1_1update_chat_is_marked_as_unread.html
-
-    # django.setup()
-    django.db.close_old_connections()
-
-    from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
-    tg.ChannelTunnel = ChannelTunnel
-    tg.TelegramMessage = TelegramMessage
-    tg.client = TelegramClient.objects.get(phone=tg.phone)
 
     # Загрузка каналов в список tg.channels
     tg.channels = {}
