@@ -75,8 +75,12 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     tg.ChannelTunnel = ChannelTunnel
     tg.TelegramMessage = TelegramMessage
     tg.client = TelegramClient.objects.get(phone=tg.phone)
-
-    tg.login()
+    try:
+        tg.login()
+    except RuntimeError:
+        tg.client.status = 'CODE OR PASSWORD INVALID'
+        tg.client.save()
+        return
     tg.do_get_me()
     tg.add_message_handler(message_handler)
 
@@ -156,7 +160,6 @@ def updateauthorizationstate_handler(update):
     elif 'authorizationStateClosed' in update.get('authorization_state', {}).get('@type', ''):
         print(tg.phone, 'session closed')
         tg.parent_conn.send(f'self.stop_client("{tg.phone}", "session closed")')
-
 
 
 # Добавляем чаты в БД по отметке "Не прочитанные"
