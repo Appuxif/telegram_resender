@@ -6,11 +6,8 @@ import traceback
 from django.contrib import admin
 from .models import TelegramClient, ChannelTunnel, Message
 from multiprocessing.connection import Client
-# from .apps import processor
 
-# from bot_processor import Processor
-
-# processor = None
+from .forms import TelegramClientForm
 
 
 class ChannelTunnelInline(admin.StackedInline):
@@ -18,11 +15,13 @@ class ChannelTunnelInline(admin.StackedInline):
     extra = 0
     ordering = ('-to_id', )
     readonly_fields = ('from_id', 'from_name')
-    fields = ('from_id', 'from_name', 'to_id', 'to_name', 'active')
+    # fields = ('from_id', 'from_name', 'to_id', 'to_name', 'active')
+    fields = ('from_id', 'from_name', 'to_id', 'active')
 
 
 @admin.register(TelegramClient)
 class TelegramClientAdmin(admin.ModelAdmin):
+    form = TelegramClientForm
     list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created', 'active')
     fieldsets = (
         ('Login codes', {'fields': ('active', ('status', 'last_modified'), 'code', 'password'),
