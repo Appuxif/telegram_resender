@@ -155,9 +155,8 @@ def updateauthorizationstate_handler(update):
         print(tg.phone, 'Завершение сессии')
     elif 'authorizationStateClosed' in update.get('authorization_state', {}).get('@type', ''):
         print(tg.phone, 'session closed')
-        tg.parent_conn.send(
-            f'self.stop_client({tg.phone}, "session closed");'
-        )
+        tg.parent_conn.send(f'self.stop_client("{tg.phone}", "session closed")')
+
 
 
 # Добавляем чаты в БД по отметке "Не прочитанные"
