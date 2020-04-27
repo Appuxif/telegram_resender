@@ -98,7 +98,10 @@ class Processor:
         client.last_launched = datetime.now(tz=timezone.utc)
         client.save()
 
-    def load_clients(self):
+    def load_clients(self, sleep_time=0):
+        if sleep_time:
+            sleep(sleep_time)
+        print('Загрузка списка клиентов из БД')
         self.clients = {client.phone: {'client': client}
                         for client in self.TelegramClient.objects.all() if client.active}
         print(self.clients)
@@ -200,7 +203,7 @@ class Processor:
         with Listener('/home/ubuntu/telegram_resender/webapp/processor.sock') as listener:
             while True:
                 with listener.accept() as conn:
-                    print('connection accepted from', listener.last_accepted)
+                    print('connection accepted', listener.last_accepted)
                     # while True:
                     try:
                         exec(conn.recv())

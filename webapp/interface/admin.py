@@ -83,7 +83,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
             # if processor:
                 if obj.active:
                     # processor.add_client(obj)
-                    conn.send(f'self.load_clients()')
+                    conn.send(f'self.load_clients(5)')
                 else:
                     conn.send(f'self.stop_client("{obj.phone}")')
                     # processor.stop_client(obj)
