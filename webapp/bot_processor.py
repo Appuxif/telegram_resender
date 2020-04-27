@@ -126,6 +126,7 @@ class Processor:
             self.vprint(client_phone, 'stop_client клиент удален из списка клиентов')
         else:
             self.vprint(client_phone, 'stop_client клиент не найден в списке клиентов')
+            self.vprint(self.clients)
 
         # Убиваем процесс
         if client_phone in self.client_processes:
@@ -142,6 +143,7 @@ class Processor:
             self.vprint(client_phone, 'stop_client процесс клиента остановлен')
         else:
             self.vprint(client_phone, 'stop_client процесс клиента не найден')
+            self.vprint(self.client_processes)
 
     # Перезапуск процесса клиента
     def reload_client(self, client):
