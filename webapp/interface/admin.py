@@ -30,7 +30,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
         ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
         ('User Info', {'fields': ('username', 'user_id')}),
     )
-    readonly_fields = ('phone', 'api_id', 'api_hash', 'username', 'user_id', 'status')
+    readonly_fields = ('phone', 'api_id', 'api_hash', 'username', 'user_id', 'status', 'last_modified')
     inlines = (ChannelTunnelInline,)
 
     def get_fieldsets(self, request, obj=None):
