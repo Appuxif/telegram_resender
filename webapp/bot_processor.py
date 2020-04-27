@@ -228,6 +228,5 @@ class Processor:
 
 if __name__ == '__main__':
     sleep(5)
-    if os.path.exists()
     processor = Processor()
     processor.go_processor()
