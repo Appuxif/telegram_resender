@@ -108,13 +108,16 @@ class Processor:
 
     # Добавление нового клиента в список
     def add_client(self, client_phone):
-        client = self.TelegramClient.objects.get(phone=client_phone)
-        if client.phone not in self.clients:
-            self.vprint('Добавлен новый клиент в список', client)
-            # self.clients.append(client)
-            self.clients[client.phone] = {'client': client}
+        client = self.TelegramClient.objects.filter(phone=client_phone).first()
+        if client:
+            if client.phone not in self.clients:
+                self.vprint('Добавлен новый клиент в список', client)
+                # self.clients.append(client)
+                self.clients[client.phone] = {'client': client}
+            else:
+                self.vprint('Уже в списке', client)
         else:
-            self.vprint('Уже в списке', client)
+            self.vprint('Не найден клиент', client_phone)
 
     # Остановка клиента
     def stop_client(self, client_phone, status='stopped'):
@@ -135,10 +138,11 @@ class Processor:
             client_process['process'].terminate()
             # client_process['listener_thread'].join()
 
-            client = self.TelegramClient.objects.get(phone=client_phone)
-            client.status = status
-            client.active = False
-            client.save()
+            client = self.TelegramClient.objects.filter(phone=client_phone).first()
+            if client:
+                client.status = status
+                client.active = False
+                client.save()
 
             self.vprint(client_phone, 'stop_client процесс клиента остановлен')
         else:

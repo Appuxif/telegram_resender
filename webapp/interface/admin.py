@@ -22,6 +22,8 @@ class ChannelTunnelInline(admin.StackedInline):
 @admin.register(TelegramClient)
 class TelegramClientAdmin(admin.ModelAdmin):
     form = TelegramClientForm
+    actions = None
+    save_on_top = True
     list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created', 'active')
     fieldsets = (
         ('Login codes', {'fields': ('active', ('status', 'last_modified'), 'code', 'password'),

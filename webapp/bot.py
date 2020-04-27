@@ -74,7 +74,11 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     from interface.models import ChannelTunnel, TelegramClient, Message as TelegramMessage
     tg.ChannelTunnel = ChannelTunnel
     tg.TelegramMessage = TelegramMessage
-    tg.client = TelegramClient.objects.get(phone=tg.phone)
+    tg.client = TelegramClient.objects.filter(phone=tg.phone).first()
+
+    if tg.client is None:
+        return
+
     try:
         tg.login()
     except RuntimeError:
