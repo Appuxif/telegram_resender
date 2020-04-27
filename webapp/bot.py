@@ -92,6 +92,7 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # Загрузка каналов в список tg.channels
     tg.channels = {}
     load_channels()
+
     tg.client.status = "working"
     tg.client.user_id = tg.me.id
     tg.client.username = tg.me.username
@@ -171,7 +172,7 @@ def updateChatIsMarkedAsUnread_handler(update):
 
 
 def load_channels(sleep_time=0):
-    if tg is None:
+    if tg is None or not tg._is_enabled:
         return
     if sleep_time:
         sleep(sleep_time)

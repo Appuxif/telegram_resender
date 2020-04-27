@@ -96,7 +96,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
                 if obj.password:
                     print(obj.password)
-                    conn.send(f'self.send_code_to_client("{obj.phone}", "{obj.password}")')
+                    conn.send(f'self.send_password_to_client("{obj.phone}", "{obj.password}")')
                     # processor.send_password_to_client(obj)
         except FileNotFoundError:
             print('save_model Сокет не найден')

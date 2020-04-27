@@ -206,7 +206,9 @@ class Processor:
                     print('connection accepted', listener.last_accepted)
                     # while True:
                     try:
-                        exec(conn.recv())
+                        accepted = conn.recv()
+                        print('Получен запрос', accepted)
+                        exec(accepted)
                     except KeyboardInterrupt:
                         print('KeyboardInterrupt')
                         return
