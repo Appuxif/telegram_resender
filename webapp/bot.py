@@ -164,13 +164,15 @@ def updateauthorizationstate_handler(update):
 
 # Добавляем чаты в БД по отметке "Не прочитанные"
 def updateChatIsMarkedAsUnread_handler(update):
-    # print('updateChatIsMarkedAsUnread_handler', update)
+    print('updateChatIsMarkedAsUnread_handler', update)
     chat = Chat(update.get('chat_id'), tg)
     msg_chat_id = str(chat.id)
     # Проверка канала в списке
     if msg_chat_id not in tg.channels:
         # Если канала в списке нет, до добавляем его в БД и список
         add_new_channel_to_db(chat)
+    else:
+        print(tg.phone, 'Чат уже в списке')
 
 
 def load_channels(sleep_time=0):
