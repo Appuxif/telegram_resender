@@ -133,7 +133,7 @@ class Processor:
             django.db.close_old_connections()
             client_process = self.client_processes.pop(client_phone)
             client_process['process'].terminate()
-            client_process['listener_thread'].join()
+            # client_process['listener_thread'].join()
 
             client = self.TelegramClient.objects.get(phone=client_phone)
             client.status = status
