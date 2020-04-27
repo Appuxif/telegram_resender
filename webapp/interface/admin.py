@@ -25,7 +25,7 @@ class ChannelTunnelInline(admin.StackedInline):
 class TelegramClientAdmin(admin.ModelAdmin):
     list_display = ('phone', 'status', 'last_launched', 'last_modified', 'date_created', 'active')
     fieldsets = (
-        ('Login codes', {'fields': ('active', 'status', 'code', 'password'),
+        ('Login codes', {'fields': ('active', ('status', 'last_modified'), 'code', 'password'),
                          'description': 'Вводить только по требованию'}),
         ('Client info', {'fields': ('phone', 'api_id', 'api_hash')}),
         ('User Info', {'fields': ('username', 'user_id')}),
@@ -83,7 +83,8 @@ class TelegramClientAdmin(admin.ModelAdmin):
             # if processor:
                 if obj.active:
                     # processor.add_client(obj)
-                    conn.send(f'self.load_clients(5)')
+                    # conn.send(f'self.load_clients(5)')
+                    conn.send(f'self.add_client("{obj.phone}")')
                 else:
                     conn.send(f'self.stop_client("{obj.phone}")')
                     # processor.stop_client(obj)

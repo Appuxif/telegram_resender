@@ -23,8 +23,10 @@ def status_polling():
         # Обновлять статус каждые пять минут
         if monotonic() - timer > 300:
             timer = monotonic()
-            tg.parent_conn.send('client.status = "working";'
-                                'client.save();')
+            tg.client.status = "working"
+            tg.client.save()
+            # tg.parent_conn.send('client.status = "working";'
+            #                     'client.save();')
         sleep(10)
 
 
@@ -90,11 +92,15 @@ def start_bot(api_id, api_hash, phone, parent_conn=None, child_conn=None):
     # Загрузка каналов в список tg.channels
     tg.channels = {}
     load_channels()
+    tg.client.status = "working"
+    tg.client.user_id = tg.me.id
+    tg.client.username = tg.me.username
+    tg.client.save()
 
-    tg.parent_conn.send('client.status = "working";'
-                        f'client.user_id = "{tg.me.id}";'
-                        f'client.username = "{tg.me.username}";'
-                        'client.save();')
+    # tg.parent_conn.send('client.status = "working";'
+    #                     f'client.user_id = "{tg.me.id}";'
+    #                     f'client.username = "{tg.me.username}";'
+    #                     'client.save();')
     threading.Thread(target=status_polling, daemon=True).start()
 
     tg.idle()
@@ -129,21 +135,26 @@ def another_update_hander(update):
 
 # Обработчик состояния авторизации. Для получения состояния о закрытой сессии и о запросах кодов и паролей.
 def updateauthorizationstate_handler(update):
+    django.db.close_old_connections()
     print('updateAuthorizationState', update)
     if 'authorizationStateWaitCode' in update.get('authorization_state', {}).get('@type', ''):
         print('code required')
-        tg.parent_conn.send('client.status = "code required";'
-                            'client.save();')
+        tg.client.status = 'code required'
+        tg.client.save()
+        # tg.parent_conn.send('client.status = "code required";'
+        #                     'client.save();')
     elif 'authorizationStateWaitPassword' in update.get('authorization_state', {}).get('@type', ''):
         print('password required')
-        tg.parent_conn.send('client.status = "password required";'
-                            'client.save();')
+        tg.client.status = 'password required'
+        tg.client.save()
+        # tg.parent_conn.send('client.status = "password required";'
+        #                     'client.save();')
     elif 'authorizationStateLoggingOut' in update.get('authorization_state', {}).get('@type', ''):
         print('Завершение сессии')
     elif 'authorizationStateClosed' in update.get('authorization_state', {}).get('@type', ''):
         print('session closed')
         tg.parent_conn.send(
-            'self.stop_client(client, "session closed");'
+            f'self.stop_client({tg.phone}, "session closed");'
         )
 
 
