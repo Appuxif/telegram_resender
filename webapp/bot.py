@@ -125,7 +125,7 @@ def process_message_update(update):
 
 # Обработчик всех входящих сообщений
 def message_handler(update):
-    print('message_handler', update, '\n')
+    # print('message_handler', update, '\n')
     try:
         process_message_update(update)
     except Exception as err:
@@ -141,7 +141,7 @@ def another_update_hander(update):
 # Обработчик состояния авторизации. Для получения состояния о закрытой сессии и о запросах кодов и паролей.
 def updateauthorizationstate_handler(update):
     django.db.close_old_connections()
-    print('updateAuthorizationState', update)
+    # print('updateAuthorizationState', update)
     if 'authorizationStateWaitCode' in update.get('authorization_state', {}).get('@type', ''):
         print(tg.phone, 'code required')
         tg.client.status = 'code required'
@@ -182,7 +182,7 @@ def load_channels(sleep_time=0):
         sleep(sleep_time)
     tg.channels = {channel.from_id: channel
                    for channel in tg.ChannelTunnel.objects.filter(client=tg.client)}
-    print(tg.phone, 'Список каналов загружен')
+    # print(tg.phone, 'Список каналов загружен')
     # TODO: Для отладки. Потом удалить
     for channel in tg.channels:
         channel = tg.channels[channel]
@@ -200,7 +200,7 @@ def add_new_channel_to_db(chat):
 
 def resend_message(update, msg):
     # Проверяем наличие реплая
-    print('msg.reply_to_message', msg.reply_to_message, '\n')
+    # print('msg.reply_to_message', msg.reply_to_message, '\n')
     msg_chat_id = str(msg.chat.id)
 
     # Отправка копии сообщения во второй канал
@@ -213,8 +213,9 @@ def resend_message(update, msg):
         print('mes is None')
         return
     mes.wait(timeout=5)
-    print('mes.update', mes.update, '\n')
-    print('mes.error_info', mes.error_info, '\n')
+    # print('mes.update', mes.update, '\n')
+    if mes.error_info:
+        print(tg.phone, 'mes.error_info', mes.error_info, '\n')
 
     # Сохраняем связку ID сообщений для последующей возможности реплая
     if mes.update:
@@ -233,7 +234,7 @@ def get_reply_to_message_id(msg):
         from_message_id = msg.reply_to_message.message_id
         message_from_db = tg.TelegramMessage.objects.filter(channel=tg.channels[str(msg.chat.id)],
                                                             from_message_id=from_message_id).first()
-        print('message_from_db', message_from_db, '\n')
+        # print('message_from_db', message_from_db, '\n')
         if message_from_db:
             reply_to_message_id = message_from_db.to_message_id
     return reply_to_message_id
@@ -266,7 +267,7 @@ def resend_photo(update, msg):
     photo = content.get('photo', {}).get('sizes', [])
     if photo:
         photo_id = photo[-1]['photo']['remote']['id']
-        print('photo_id', photo_id)
+        # print('photo_id', photo_id)
 
         caption = content.get('caption', {})
         return tg.call_method('sendMessage', {
@@ -290,7 +291,7 @@ def resend_document(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     document_id = content.get('document', {}).get('document', {}).get('remote', {}).get('id')
-    print('document_id', document_id)
+    # print('document_id', document_id)
 
     if document_id:
         caption = content.get('caption', {})
@@ -315,7 +316,7 @@ def resend_video(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     video_id = content.get('video', {}).get('video', {}).get('remote', {}).get('id')
-    print('video_id', video_id)
+    # print('video_id', video_id)
 
     if video_id:
         caption = content.get('caption', {})
@@ -340,7 +341,7 @@ def resend_sticker(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     sticker_id = content.get('sticker', {}).get('sticker', {}).get('remote', {}).get('id')
-    print('sticker_id', sticker_id)
+    # print('sticker_id', sticker_id)
 
     if sticker_id:
         return tg.call_method('sendMessage', {
@@ -363,7 +364,7 @@ def resend_animation(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     animation_id = content.get('animation', {}).get('animation', {}).get('remote', {}).get('id')
-    print('animation_id', animation_id)
+    # print('animation_id', animation_id)
 
     if animation_id:
         caption = content.get('caption', {})
@@ -388,7 +389,7 @@ def resend_audio(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     audio_id = content.get('audio', {}).get('audio', {}).get('remote', {}).get('id')
-    print('audio_id', audio_id)
+    # print('audio_id', audio_id)
 
     if audio_id:
         caption = content.get('caption', {})
@@ -413,7 +414,7 @@ def resend_video_note(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     video_note_id = content.get('video_note', {}).get('video', {}).get('remote', {}).get('id')
-    print('video_note_id', video_note_id)
+    # print('video_note_id', video_note_id)
 
     if video_note_id:
         caption = content.get('caption', {})
@@ -438,7 +439,7 @@ def resend_voice_note(update, msg):
     message = update.get('message', {})
     content = message.get('content', {})
     voice_note_id = content.get('voice_note', {}).get('voice', {}).get('remote', {}).get('id')
-    print('voice_note_id', voice_note_id)
+    # print('voice_note_id', voice_note_id)
 
     if voice_note_id:
         caption = content.get('caption', {})
