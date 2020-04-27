@@ -113,6 +113,8 @@ class Processor:
             self.vprint('Добавлен новый клиент в список', client)
             # self.clients.append(client)
             self.clients[client.phone] = {'client': client}
+        else:
+            self.vprint('Уже в списке', client)
 
     # Остановка клиента
     def stop_client(self, client_phone, status='stopped'):
@@ -204,19 +206,19 @@ class Processor:
             while True:
                 with listener.accept() as conn:
                     print('connection accepted', listener.last_accepted)
-                    # while True:
-                    try:
-                        accepted = conn.recv()
-                        print('Получен запрос', accepted)
-                        exec(accepted)
-                    except KeyboardInterrupt:
-                        print('KeyboardInterrupt')
-                        return
-                    except EOFError:
-                        pass
-                    except Exception as err:
-                        traceback.print_exc(file=sys.stdout)
-                        print('Ошибка листенера')
+                    while True:
+                        try:
+                            accepted = conn.recv()
+                            print('Получен запрос', accepted)
+                            exec(accepted)
+                        except KeyboardInterrupt:
+                            print('KeyboardInterrupt')
+                            return
+                        except EOFError:
+                            break
+                        except Exception as err:
+                            traceback.print_exc(file=sys.stdout)
+                            print('Ошибка листенера')
 
 
 if __name__ == '__main__':

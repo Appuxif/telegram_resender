@@ -139,22 +139,22 @@ def updateauthorizationstate_handler(update):
     django.db.close_old_connections()
     print('updateAuthorizationState', update)
     if 'authorizationStateWaitCode' in update.get('authorization_state', {}).get('@type', ''):
-        print('code required')
+        print(tg.phone, 'code required')
         tg.client.status = 'code required'
         tg.client.save()
         # tg.parent_conn.send('client.status = "code required";'
         #                     'client.save();')
 
     elif 'authorizationStateWaitPassword' in update.get('authorization_state', {}).get('@type', ''):
-        print('password required')
+        print(tg.phone, 'password required')
         tg.client.status = 'password required'
         tg.client.save()
         # tg.parent_conn.send('client.status = "password required";'
         #                     'client.save();')
     elif 'authorizationStateLoggingOut' in update.get('authorization_state', {}).get('@type', ''):
-        print('Завершение сессии')
+        print(tg.phone, 'Завершение сессии')
     elif 'authorizationStateClosed' in update.get('authorization_state', {}).get('@type', ''):
-        print('session closed')
+        print(tg.phone, 'session closed')
         tg.parent_conn.send(
             f'self.stop_client({tg.phone}, "session closed");'
         )
