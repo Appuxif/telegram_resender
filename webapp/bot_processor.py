@@ -224,5 +224,6 @@ class Processor:
 
 
 if __name__ == '__main__':
+    sleep(5)
     processor = Processor()
     processor.go_processor()
