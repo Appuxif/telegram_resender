@@ -53,8 +53,10 @@ class TelegramClientAdmin(admin.ModelAdmin):
     # Удаляем удаленный клиент из списка
     def delete_model(self, request, obj):
         try:
-            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock', authkey=b'testauthkey') as conn:
+            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock') as conn:
                 conn.send(f'self.stop_client("{obj.phone}")')
+        except FileNotFoundError:
+            print('delete_model Сокет не найден')
         except:
             print('delete_model Ошибка подключения')
             traceback.print_exc(file=sys.stdout)
@@ -65,8 +67,10 @@ class TelegramClientAdmin(admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         super(TelegramClientAdmin, self).save_related(request, form, formsets, change)
         try:
-            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock', authkey=b'testauthkey') as conn:
+            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock') as conn:
                 conn.send(f'self.reload_client_channels("{form.instance.phone}")')
+        except FileNotFoundError:
+            print('save_related Сокет не найден')
         except:
             print('save_related Ошибка подключения')
             traceback.print_exc(file=sys.stdout)
@@ -75,7 +79,7 @@ class TelegramClientAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         try:
-            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock', authkey=b'testauthkey') as conn:
+            with Client('/home/ubuntu/telegram_resender/webapp/processor.sock') as conn:
             # if processor:
                 if obj.active:
                     # processor.add_client(obj)
@@ -93,6 +97,8 @@ class TelegramClientAdmin(admin.ModelAdmin):
                     print(obj.password)
                     conn.send(f'self.send_code_to_client("{obj.phone}", "{obj.password}")')
                     # processor.send_password_to_client(obj)
+        except FileNotFoundError:
+            print('save_model Сокет не найден')
         except:
             print('save_model Ошибка подключения')
             traceback.print_exc(file=sys.stdout)

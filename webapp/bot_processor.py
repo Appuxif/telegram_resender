@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from time import sleep
 import os
 import multiprocessing as mp
+from multiprocessing.connection import Listener
 import threading
 import django
 import sys
@@ -196,21 +197,23 @@ class Processor:
     # В этом потоке будут слушаться запросы от сервера
     def listener_thread(self):
         print('Запуск листенера')
-        # with mp.connection.Listener('/home/ubuntu/telegram_resender/webapp/processor.sock', family='AF_UNIX') as listener:
-        with mp.connection.Listener('/var/www/telegram_resender/proc.sock', family='AF_UNIX', authkey=b'asd') as listener:
-            with listener.accept() as conn:
-                print('connection accepted from', listener.last_accepted)
-                # while True:
-                try:
-                    exec(conn.recv())
-                except KeyboardInterrupt:
-                    print('KeyboardInterrupt')
-                    return
-                except Exception as err:
-                    traceback.print_exc(file=sys.stdout)
-                    print('Ошибка листенера')
+        with Listener('/home/ubuntu/telegram_resender/webapp/processor.sock') as listener:
+            while True:
+                with listener.accept() as conn:
+                    print('connection accepted from', listener.last_accepted)
+                    # while True:
+                    try:
+                        exec(conn.recv())
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        return
+                    except EOFError:
+                        pass
+                    except Exception as err:
+                        traceback.print_exc(file=sys.stdout)
+                        print('Ошибка листенера')
 
 
 if __name__ == '__main__':
     processor = Processor()
-    # processor.go_processor()
+    processor.go_processor()
