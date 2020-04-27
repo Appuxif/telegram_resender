@@ -143,6 +143,7 @@ def updateauthorizationstate_handler(update):
         tg.client.save()
         # tg.parent_conn.send('client.status = "code required";'
         #                     'client.save();')
+
     elif 'authorizationStateWaitPassword' in update.get('authorization_state', {}).get('@type', ''):
         print('password required')
         tg.client.status = 'password required'
