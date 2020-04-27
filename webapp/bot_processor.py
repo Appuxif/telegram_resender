@@ -204,6 +204,9 @@ class Processor:
     # В этом потоке будут слушаться запросы от сервера
     def listener_thread(self):
         print('Запуск листенера')
+        if os.path.exists('/home/ubuntu/telegram_resender/webapp/processor.sock'):
+            os.remove('/home/ubuntu/telegram_resender/webapp/processor.sock')
+
         with Listener('/home/ubuntu/telegram_resender/webapp/processor.sock') as listener:
             while True:
                 with listener.accept() as conn:
@@ -225,5 +228,6 @@ class Processor:
 
 if __name__ == '__main__':
     sleep(5)
+    if os.path.exists()
     processor = Processor()
     processor.go_processor()
